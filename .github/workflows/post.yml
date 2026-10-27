@@ -1,0 +1,62 @@
+name: Post to Instagram
+
+on:
+  schedule:
+    # Every hour at :07 (off the top of the hour, when GitHub's timers are busiest).
+    # GitHub may start it up to ~15 minutes late; set publish_at accordingly.
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: show what would post, post nothing"
+        type: boolean
+        default: true
+      force:
+        description: "Post this queue folder right now (e.g. 2026-10-27-fairfield-1959). Leave blank for normal run."
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: instagram-poster
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Publish due posts
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          MAX_LATE_HOURS: ${{ vars.MAX_LATE_HOURS || '6' }}
+          EVENT: ${{ github.event_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          ARGS=()
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+            if [ -n "$FORCE" ]; then ARGS+=(--force "$FORCE"); fi
+          fi
+          python poster/publish.py "${ARGS[@]}"
+
+      - name: Save results so nothing posts twice
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain queue)" ]; then
+            git config user.name "mhg-poster"
+            git config user.email "mhg-poster@users.noreply.github.com"
+            git add queue
+            git commit -m "Record Instagram results [skip ci]"
+            git push
+          fi
