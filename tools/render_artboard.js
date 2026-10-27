@@ -7,13 +7,16 @@ const fs = require('fs');
 const path = require('path');
 
 (async () => {
-  const [src, out, fontsDir] = process.argv.slice(2);
-  if (!src || !out) { console.error('usage: render_artboard.js in.dc.html out.jpg [fontsDir]'); process.exit(1); }
+  // Instagram's API only accepts 4:5 (1080x1350) or wider, so canvas boards drawn at
+  // 3:4 (1080x1440) are rendered at 1350 by default; the layout's flex spacing absorbs it.
+  const [src, out, fontsDir, hArg] = process.argv.slice(2);
+  if (!src || !out) { console.error('usage: render_artboard.js in.dc.html out.jpg [fontsDir] [height=1350]'); process.exit(1); }
   const html = fs.readFileSync(src, 'utf8');
   const helmet = (html.match(/<helmet>([\s\S]*?)<\/helmet>/) || [, ''])[1];
-  const body = html.match(/<\/helmet>([\s\S]*?)<\/x-dc>/)[1];
   const props = JSON.parse((html.match(/data-props='([^']*)'/) || [, '{}'])[1]);
-  const w = (props.$preview || {}).width || 1080, h = (props.$preview || {}).height || 1350;
+  const w = (props.$preview || {}).width || 1080, srcH = (props.$preview || {}).height || 1350;
+  const h = Number(hArg) || 1350;
+  const body = html.match(/<\/helmet>([\s\S]*?)<\/x-dc>/)[1].replace(`height: ${srcH}px`, `height: ${h}px`);
 
   let head = helmet;
   if (fontsDir) {
