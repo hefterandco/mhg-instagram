@@ -2,9 +2,10 @@ name: Post to Instagram
 
 on:
   schedule:
-    # Every hour at :07 (off the top of the hour, when GitHub's timers are busiest).
+    # Every 15 minutes, off the quarter-hour. GitHub delays scheduled runs on quiet repos
+    # (sometimes by hours), so checking often keeps posts close to their time.
     # GitHub may start it up to ~15 minutes late; set publish_at accordingly.
-    - cron: "7 * * * *"
+    - cron: "4,19,34,49 * * * *"
   workflow_dispatch:
     inputs:
       dry_run:
