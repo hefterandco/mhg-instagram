@@ -37,7 +37,8 @@ from queue_check import QUEUE_DIR, check_post, load_post  # noqa: E402
 IG_USER_ID = os.environ.get("IG_USER_ID", "")            # SECRET  e.g. 17841400000000000
 IG_ACCESS_TOKEN = os.environ.get("IG_ACCESS_TOKEN", "")  # SECRET  long-lived Instagram user token
 GRAPH_HOST = os.environ.get("IG_GRAPH_HOST", "https://graph.instagram.com")
-GRAPH_VERSION = os.environ.get("IG_GRAPH_VERSION", "")    # optional, e.g. v23.0; blank = unversioned
+# Pinned so a change in the Meta app dashboard can't change behaviour. Override with IG_GRAPH_VERSION.
+GRAPH_VERSION = os.environ.get("IG_GRAPH_VERSION") or "v26.0"
 # Where Instagram can download the images from. In GitHub Actions this is built
 # automatically from the repo and the exact commit, so it never serves a stale file.
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "")
@@ -45,12 +46,36 @@ PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "")
 # so turning the poster back on after a break never dumps a week of posts at once.
 MAX_LATE_HOURS = float(os.environ.get("MAX_LATE_HOURS", "6"))
 
-STATUS_POLL_SECONDS = 15
-STATUS_POLL_TRIES = 20  # about 5 minutes, per Meta's guidance
+STATUS_POLL_SECONDS = 60
+STATUS_POLL_TRIES = 6  # once a minute for up to 5 minutes, per Meta's guidance
+
+# Error subcodes that will fail the same way every time, so the post is marked
+# "failed" instead of being retried every 15 minutes. From Meta's error code table
+# (docs/RESEARCH.md section 5). Everything else is treated as temporary and retried.
+PERMANENT_SUBCODES = {
+    2207004: "image is over 8 MB",
+    2207005: "image format not supported (use JPEG)",
+    2207009: "image shape is outside 4:5 to 1.91:1",
+    2207010: "caption too long, or too many hashtags or @mentions",
+    2207023: "unknown media type",
+    2207026: "video format not supported",
+    2207028: "carousel needs 2 to 10 items",
+    2207040: "too many @ tags (max 20)",
+    2207042: "Instagram's daily posting limit was reached",
+    2207050: "the Instagram account is inactive, checkpointed or restricted; fix it in the Instagram app",
+    2207051: "Instagram flagged this as spam; contest it in the Instagram app before posting again",
+    2207052: "Instagram could not download the image; check the repo is public",
+}
 
 
 class ApiError(RuntimeError):
-    pass
+    def __init__(self, message: str, code: int | None = None, subcode: int | None = None):
+        super().__init__(message)
+        self.code, self.subcode = code, subcode
+
+    @property
+    def permanent(self) -> bool:
+        return self.subcode in PERMANENT_SUBCODES
 
 
 def base_url() -> str:
@@ -82,10 +107,13 @@ def api(method: str, path: str, params: dict | None = None) -> dict:
             err = json.loads(body).get("error", {})
         except ValueError:
             err = {"message": body[:300]}
+        code, subcode = err.get("code"), err.get("error_subcode")
         hint = ""
-        if err.get("code") == 190:
+        if code == 190:
             hint = " (the access token is expired or invalid: run the Refresh token workflow or paste a new token, see SETUP.md)"
-        raise ApiError(f"{method} {path}: {err.get('message', body[:300])}{hint}") from None
+        elif subcode in PERMANENT_SUBCODES:
+            hint = f" ({PERMANENT_SUBCODES[subcode]})"
+        raise ApiError(f"{method} {path}: {err.get('message', body[:300])}{hint}", code, subcode) from None
 
 
 def wait_until_ready(container_id: str) -> None:
@@ -102,8 +130,14 @@ def wait_until_ready(container_id: str) -> None:
 def publish(folder: Path, post: dict) -> dict:
     urls = [f"{base_url()}/queue/{folder.name}/{name}" for name in post["images"]]
     caption = post["caption"]
+    # Optional post.json fields, passed straight through. Carousel children can't take either.
+    extra = {}
+    if post.get("is_ai_generated"):
+        extra["is_ai_generated"] = "true"
     if len(urls) == 1:
-        container = api("POST", f"{IG_USER_ID}/media", {"image_url": urls[0], "caption": caption})["id"]
+        if post.get("alt_text"):
+            extra["alt_text"] = post["alt_text"]
+        container = api("POST", f"{IG_USER_ID}/media", {"image_url": urls[0], "caption": caption, **extra})["id"]
     else:
         children = []
         for u in urls:
@@ -112,7 +146,7 @@ def publish(folder: Path, post: dict) -> dict:
         for cid in children:
             wait_until_ready(cid)
         container = api("POST", f"{IG_USER_ID}/media", {
-            "media_type": "CAROUSEL", "children": ",".join(children), "caption": caption,
+            "media_type": "CAROUSEL", "children": ",".join(children), "caption": caption, **extra,
         })["id"]
     wait_until_ready(container)
     media_id = api("POST", f"{IG_USER_ID}/media_publish", {"creation_id": container})["id"]
@@ -182,8 +216,15 @@ def main() -> int:
         try:
             res = publish(folder, post)
         except ApiError as e:
-            print(f"[error] {folder.name}: {e}")
             failures += 1
+            if e.permanent:
+                # Retrying won't help (and for spam or restricted accounts, could hurt).
+                # Delete result.json after fixing the problem to try again.
+                print(f"[failed] {folder.name}: {e} -- not retrying; delete result.json to try again")
+                write_result(folder, {"status": "failed", "checked_at": now.isoformat(),
+                                      "error_code": e.code, "error_subcode": e.subcode, "reason": str(e)})
+            else:
+                print(f"[error] {folder.name}: {e} -- will retry next run")
             continue
         write_result(folder, {"status": "published", "published_at": now.isoformat(), **res})
         print(f"[published] {folder.name} {res.get('permalink', '')}")

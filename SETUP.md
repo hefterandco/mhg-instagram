@@ -9,7 +9,7 @@ One-time, about 30 minutes. Everything here is free.
 | `IG_ACCESS_TOKEN` | GitHub › Settings › Secrets and variables › Actions › **Secrets** | **Yes** | Long-lived Instagram token, good for 60 days. Refreshed automatically every Monday. | Step 4 |
 | `IG_USER_ID` | Same place, **Secrets** | Yes (treat as private) | Your Instagram professional account ID. Optional: the poster looks it up from the token if blank. | Step 5 |
 | `GH_SECRETS_TOKEN` | Same place, **Secrets** | **Yes** | GitHub token that lets the weekly refresh save the new Instagram token. | Step 6 |
-| `IG_GRAPH_VERSION` | Same page, **Variables** tab | No | Optional. Pin the API version, e.g. `v23.0`. Leave unset to use Meta's default. | — |
+| `IG_GRAPH_VERSION` | Same page, **Variables** tab | No | Optional. The poster uses API version `v26.0` unless you set this, e.g. to try a newer version. | — |
 | `MAX_LATE_HOURS` | Same page, **Variables** tab | No | Optional, default `6`. A post this many hours late is skipped and marked "missed" instead of posted. | — |
 
 Nothing else. No paid services. Meta's app secret is **not** needed for this.
@@ -67,7 +67,7 @@ Nothing to switch on: the hourly run publishes anything whose `publish_at` time 
 queue/
   2026-10-27-fairfield-1959/
     post.json
-    1.jpg            ← 1080×1350 JPEG (2.jpg, 3.jpg… makes a carousel, up to 20)
+    1.jpg            ← 1080×1350 JPEG (2.jpg, 3.jpg… makes a carousel, up to 10)
 ```
 
 `post.json`:
@@ -79,13 +79,17 @@ queue/
 }
 ```
 
-- Times need the time zone: `-04:00` until Nov 1, then `-05:00` (Eastern Standard Time).
-- The poster runs at about :07 past each hour, and GitHub can start it up to ~15 minutes late. So an 11:00 post goes up around 11:07–11:25.
-- After posting, it writes `result.json` (with the post link) next to the post, so it never posts twice.
+Two optional extras:
+- `"alt_text": "Description of the image for screen readers"`: single-image posts only, up to 1,000 characters.
+- `"is_ai_generated": true`: adds Instagram's "AI info" label. Use it when the image was made with AI.
+
+- Times need the time zone: `-04:00` in summer (EDT), `-05:00` in winter (EST). Clocks change on the first Sunday of November and the second Sunday of March. Check queue flags a wrong one.
+- The poster checks every 15 minutes (:04, :19, :34, :49), and GitHub can start it late when it's busy. So an 11:00 post usually goes up around 11:04–11:30.
+- After posting, it writes `result.json` (with the post link) next to the post, so it never posts twice. If Instagram rejects a post for a reason retrying won't fix (bad image, caption too long, account restricted, spam flag), it writes `result.json` with `"status": "failed"` and the reason instead. Fix the problem, delete that `result.json` and push to try again.
 - Every push runs **Check queue**, which catches non-JPEG images, wrong shapes, missing time zones and long captions before posting day.
 
 ## When something goes wrong
 - GitHub emails you when a run fails. The log says why in plain words.
 - "token is expired or invalid": do step 4 again and replace `IG_ACCESS_TOKEN`.
-- Limits: Meta allows up to 100 API posts per 24 hours. Not a concern at our pace.
+- Limits: Meta's docs say 50 (in places 100) API posts per 24 hours. **Check Instagram token** shows the real number. Not a concern at our pace.
 - GitHub pauses timers in repos with no activity for 60 days. Each posted result is a commit, so this only happens if nothing is queued for two months.

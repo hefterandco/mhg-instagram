@@ -12,13 +12,19 @@ import re
 import struct
 import sys
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 QUEUE_DIR = ROOT / "queue"
+LOCAL_TZ = ZoneInfo("America/New_York")
 
 MAX_CAPTION = 2200
 MAX_HASHTAGS = 30
-MAX_CAROUSEL = 20
+MAX_MENTIONS = 20
+# Meta's docs say 20, but its error table still says 2-10 (subcode 2207028).
+# Stay at 10 until a bigger carousel is proven to post. See docs/RESEARCH.md.
+MAX_CAROUSEL = 10
+MAX_ALT_TEXT = 1000
 MAX_BYTES = 8 * 1024 * 1024
 # Instagram feed images must fall between 4:5 (tall) and 1.91:1 (wide).
 MIN_RATIO, MAX_RATIO = 4 / 5, 1.91
@@ -62,6 +68,12 @@ def check_post(folder: Path) -> list[str]:
         t = dt.datetime.fromisoformat(when)
         if t.tzinfo is None:
             problems.append("publish_at needs a time zone, e.g. 2026-10-27T09:00:00-04:00")
+        else:
+            # Catch -04:00 used after the clocks go back (or -05:00 in summer).
+            expected = t.replace(tzinfo=None).replace(tzinfo=LOCAL_TZ).utcoffset()
+            if t.utcoffset() != expected:
+                hours = int(expected.total_seconds() // 3600)
+                problems.append(f"publish_at offset is wrong for that date in Connecticut; use {hours:+03d}:00")
     except (TypeError, ValueError):
         problems.append("publish_at is missing or not a date like 2026-10-27T09:00:00-04:00")
 
@@ -72,8 +84,22 @@ def check_post(folder: Path) -> list[str]:
         problems.append(f"caption is {len(caption)} characters (max {MAX_CAPTION})")
     elif len(re.findall(r"#\w+", caption)) > MAX_HASHTAGS:
         problems.append(f"more than {MAX_HASHTAGS} hashtags")
+    elif len(re.findall(r"@[\w.]+", caption)) > MAX_MENTIONS:
+        problems.append(f"more than {MAX_MENTIONS} @mentions")
 
     images = post.get("images", [])
+
+    # Optional fields.
+    alt = post.get("alt_text")
+    if alt is not None:
+        if not isinstance(alt, str):
+            problems.append("alt_text must be text")
+        elif len(alt) > MAX_ALT_TEXT:
+            problems.append(f"alt_text is {len(alt)} characters (max {MAX_ALT_TEXT})")
+        elif len(images) > 1:
+            problems.append("alt_text only works on single-image posts, not carousels")
+    if not isinstance(post.get("is_ai_generated", False), bool):
+        problems.append("is_ai_generated must be true or false")
     if not images:
         problems.append("no images listed")
     if len(images) > MAX_CAROUSEL:
@@ -107,8 +133,16 @@ def main() -> int:
     bad = 0
     for folder in sorted(p for p in QUEUE_DIR.iterdir() if p.is_dir()):
         problems = check_post(folder)
-        done = (folder / "result.json").exists()
-        tag = "done" if done else ("ok" if not problems else "FIX")
+        result = folder / "result.json"
+        done = result.exists()
+        if done:
+            try:
+                tag = json.loads(result.read_text()).get("status", "done")
+            except ValueError:
+                tag = "done"
+            problems = []  # already handled; its date and rules no longer matter
+        else:
+            tag = "ok" if not problems else "FIX"
         print(f"[{tag}] {folder.name}" + ("" if not problems else ": " + "; ".join(problems)))
         if problems and not done:
             bad += 1
