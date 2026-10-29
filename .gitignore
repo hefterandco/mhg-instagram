@@ -5,3 +5,6 @@ node_modules/
 *.plan.json
 *.edit.mp4
 *.edit.credits.txt
+# Reel videos go on the "reels" GitHub Release, not in the repo (see SETUP.md).
+queue/**/*.mp4
+queue/**/*.mov

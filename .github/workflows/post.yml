@@ -28,9 +28,9 @@ jobs:
   post:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -51,13 +51,26 @@ jobs:
           fi
           python poster/publish.py "${ARGS[@]}"
 
+      - name: Post a Story if one is due
+        if: always() && (github.event_name == 'schedule' || inputs.force == '')
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          EVENT: ${{ github.event_name }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          ARGS=()
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
+          python poster/stories.py "${ARGS[@]}"
+
       - name: Save results so nothing posts twice
         if: always()
         run: |
-          if [ -n "$(git status --porcelain queue)" ]; then
+          if [ -n "$(git status --porcelain queue stories)" ]; then
             git config user.name "mhg-poster"
             git config user.email "mhg-poster@users.noreply.github.com"
-            git add queue
+            git add queue stories
             git commit -m "Record Instagram results [skip ci]"
             # If a new post was pushed while this run was posting, take it in first.
             # Losing result.json here would mean posting the same thing again next run.
