@@ -123,7 +123,8 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
 
     (tmp / "graph.txt").write_text(";\n".join(g))
     out = out.resolve()
-    args += ["-filter_complex_script", "graph.txt", "-map", f"[{v}]", "-map", f"[{a}]",
+    # "-/filter_complex" reads the graph from a file (ffmpeg 7+; ffmpeg 9 removed -filter_complex_script).
+    args += ["-/filter_complex", "graph.txt", "-map", f"[{v}]", "-map", f"[{a}]",
              "-c:v", "libx264", "-preset", o["preset"], "-crf", str(o["crf"]), "-pix_fmt", "yuv420p",
              "-r", str(FPS), "-c:a", "aac", "-b:a", "128k", "-ar", "48000", "-movflags", "+faststart", str(out)]
     # Inputs given as absolute paths; cards, captions and fonts are relative to tmp.

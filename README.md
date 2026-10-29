@@ -7,7 +7,7 @@ Drop a finished post (JPEG + caption + time) into `queue/`, push, and GitHub pub
 - **Setup:** [SETUP.md](SETUP.md), with every key listed fill-in-the-blank.
 - **What's queued:** the `queue/` folder. A `result.json` in a folder means it's been handled: `published`, `missed` (too late) or `failed` (a problem retrying won't fix; the file says why, and deleting it tries again).
 - **Check the queue locally:** `python poster/queue_check.py`
-- **Edit a face-to-camera video into a Reel (captions, cuts, B-roll, end card):** `python3 -m faceedit edit clip.mov --title "..."`. See [faceedit/README.md](faceedit/README.md)
+- **Edit a face-to-camera video into a Reel (captions, cuts, B-roll, end card):** `.venv/bin/python -m faceedit edit clip.mov --title "..."`. See [faceedit/README.md](faceedit/README.md)
 - **Turn a canvas artboard into a post image:** `node tools/render_artboard.js Post.dc.html queue/<folder>/1.jpg <fontsDir>`
 
 | Workflow | When | What |

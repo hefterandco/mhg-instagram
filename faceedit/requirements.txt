@@ -1,4 +1,6 @@
 # Python 3.11+ and ffmpeg (Mac: brew install ffmpeg)
 faster-whisper>=1.0
+# PyAV 19 dropped an option faster-whisper 1.2.1 uses (av.open metadata_errors); 18.x works.
+av<19
 opencv-python-headless>=4.8,<5
 pillow>=10

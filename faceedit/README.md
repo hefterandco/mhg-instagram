@@ -15,12 +15,20 @@ What it does to a clip:
 
 ## One-time setup (Mac)
 
+Needs Homebrew (brew.sh). Then, in Terminal:
+
 ```bash
-brew install ffmpeg
-cd mhg-instagram
-pip3 install -r faceedit/requirements.txt
+brew install ffmpeg-full python@3.12
+brew unlink ffmpeg 2>/dev/null; brew link --force ffmpeg-full   # plain "ffmpeg" lacks the caption filter (libass)
+cd ~/Desktop/mhg-instagram
+/opt/homebrew/bin/python3.12 -m venv .venv                     # faceedit's own Python, kept in the repo folder (not committed)
+.venv/bin/pip install -r faceedit/requirements.txt
 cp .env.example .env        # PEXELS_API_KEY can stay blank (see below)
 ```
+
+Run faceedit from the repo folder with `.venv/bin/python -m faceedit …`, as in the examples below. Check the setup with `.venv/bin/python faceedit/tests/test_core.py`.
+
+Why `ffmpeg-full`: Homebrew's standard `ffmpeg` no longer includes libass, which draws the captions (the `ass` filter). faceedit needs ffmpeg 7 or newer.
 
 **B-roll:** put your own clips in `~/Movies/MHG-broll`, named by what's in them, e.g. `gutter-cleaning-westport.mp4`. When you say a matching word, faceedit cuts to that clip. That folder is set as `local_dir` in `faceedit.toml`.
 
@@ -31,7 +39,7 @@ The first transcription downloads the Whisper model once (`small.en`, about 480 
 ## Everyday use
 
 ```bash
-python3 -m faceedit edit ~/Movies/gutters.mov --title "Your gutters are full. Now what?"
+.venv/bin/python -m faceedit edit ~/Movies/gutters.mov --title "Your gutters are full. Now what?"
 ```
 
 → `gutters.edit.mp4` next to the original, plus `gutters.edit.credits.txt` listing the Pexels clips used.
@@ -39,13 +47,13 @@ python3 -m faceedit edit ~/Movies/gutters.mov --title "Your gutters are full. No
 ### Review before rendering (optional)
 
 ```bash
-python3 -m faceedit plan ~/Movies/gutters.mov --title "..."   # writes gutters.plan.json
+.venv/bin/python -m faceedit plan ~/Movies/gutters.mov --title "..."   # writes gutters.plan.json
 # open the plan and change anything:
 #   "words"    fix a misheard caption word
 #   "segments" adjust or delete a cut
 #   "broll"    delete a cutaway, or add one: {"at": 12.5, "search": "snow plow driveway"}
 #              ("at" = seconds into the ORIGINAL clip)
-python3 -m faceedit render ~/Movies/gutters.plan.json
+.venv/bin/python -m faceedit render ~/Movies/gutters.plan.json
 ```
 
 Re-rendering a plan doesn't re-transcribe, so changes are quick.
@@ -68,13 +76,13 @@ Re-rendering a plan doesn't re-transcribe, so changes are quick.
 Add `--queue-at` with the posting time (Connecticut time) and the finished video goes straight into the auto-poster:
 
 ```bash
-python3 -m faceedit edit ~/Movies/gutters.mov --title "Your gutters are full. Now what?" --queue-at "2026-11-05 09:00"
+.venv/bin/python -m faceedit edit ~/Movies/gutters.mov --title "Your gutters are full. Now what?" --queue-at "2026-11-05 09:00"
 ```
 
 Or queue a video that's already finished (from faceedit or edited anywhere else):
 
 ```bash
-python3 -m faceedit queue ~/Movies/gutters.edit.mp4 --at "2026-11-05 09:00"
+.venv/bin/python -m faceedit queue ~/Movies/gutters.edit.mp4 --at "2026-11-05 09:00"
 ```
 
 Either way it:
@@ -100,4 +108,4 @@ It needs the `reels` release to exist (SETUP.md › Reels) and the GitHub login 
 
 - The free Pexels license allows commercial use and doesn't require credit. Crediting "B-roll: Pexels" is appreciated, and the credits file has the names.
 - Shoot vertical at 1080p or 4K and keep your face in the upper half. A landscape clip also works, since it gets cropped around your face.
-- Tests: `python3 faceedit/tests/test_core.py`
+- Tests: `.venv/bin/python faceedit/tests/test_core.py`

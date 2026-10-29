@@ -8,3 +8,4 @@ node_modules/
 # Reel videos go on the "reels" GitHub Release, not in the repo (see SETUP.md).
 queue/**/*.mp4
 queue/**/*.mov
+.venv/
