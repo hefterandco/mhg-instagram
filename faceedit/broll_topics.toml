@@ -1,0 +1,132 @@
+# What you say -> what B-roll to look for. When a word or phrase in "say" is
+# spoken, a cutaway matching "search" is pulled (from your own clips folder if
+# set, otherwise Pexels free stock). Add topics freely; first match wins.
+# For a one-off video, edit the "broll" list in its .plan.json instead.
+
+[[topic]]
+say = ["gutter", "gutters", "downspout", "downspouts"]
+search = "cleaning house gutters"
+
+[[topic]]
+say = ["leaves", "leaf", "raking", "leaf cleanup"]
+search = "raking autumn leaves yard"
+
+[[topic]]
+say = ["snow", "plow", "plowing", "snowstorm", "driveway"]
+search = "snow plow driveway"
+
+[[topic]]
+say = ["ice dam", "ice dams", "icicles"]
+search = "icicles roof winter"
+
+[[topic]]
+say = ["frozen pipe", "frozen pipes", "pipes freeze", "burst pipe", "burst pipes", "pipe burst"]
+search = "frozen pipe winter house"
+
+[[topic]]
+say = ["leak", "leaks", "leaking", "water damage", "flood", "flooded", "flooding"]
+search = "water leak ceiling"
+
+[[topic]]
+say = ["sump pump", "basement"]
+search = "basement sump pump"
+
+[[topic]]
+say = ["water heater", "hot water"]
+search = "water heater"
+
+[[topic]]
+say = ["furnace", "boiler", "heating", "heat", "thermostat"]
+search = "adjusting home thermostat"
+
+[[topic]]
+say = ["hvac", "air conditioner", "ac", "condenser", "air filter", "filters"]
+search = "hvac technician air conditioner"
+
+[[topic]]
+say = ["dryer vent", "dryer", "lint"]
+search = "clothes dryer laundry"
+
+[[topic]]
+say = ["chimney", "fireplace"]
+search = "fireplace fire burning"
+
+[[topic]]
+say = ["smoke detector", "smoke detectors", "carbon monoxide", "smoke alarm"]
+search = "smoke detector ceiling"
+
+[[topic]]
+say = ["roof", "shingles", "shingle"]
+search = "roof shingles house"
+
+[[topic]]
+say = ["windows", "window washing"]
+search = "cleaning windows"
+
+[[topic]]
+say = ["power wash", "power washing", "soft wash", "siding"]
+search = "pressure washing house siding"
+
+[[topic]]
+say = ["lawn", "mowing", "landscaping", "yard"]
+search = "suburban lawn mowing"
+
+[[topic]]
+say = ["irrigation", "sprinkler", "sprinklers"]
+search = "lawn sprinkler"
+
+[[topic]]
+say = ["pool"]
+search = "backyard swimming pool"
+
+[[topic]]
+say = ["generator"]
+search = "home backup generator"
+
+[[topic]]
+say = ["ticks", "tick", "mosquito", "mosquitoes", "pests"]
+search = "tall grass backyard summer"
+
+[[topic]]
+say = ["patio furniture", "outdoor furniture", "shrink wrap"]
+search = "patio furniture backyard"
+
+[[topic]]
+say = ["holiday lights", "christmas lights"]
+search = "house christmas lights"
+
+[[topic]]
+say = ["handyman", "repair", "fix", "fixing", "to-do list", "honey-do"]
+search = "handyman repair home"
+
+[[topic]]
+say = ["toolbox", "tools", "drill"]
+search = "tools workbench"
+
+[[topic]]
+say = ["vacation", "florida", "snowbird", "snowbirds", "traveling", "away"]
+search = "packing suitcase vacation"
+
+[[topic]]
+say = ["family", "kids", "busy"]
+search = "busy family morning kitchen"
+
+[[topic]]
+say = ["fall", "autumn", "october", "november"]
+search = "autumn neighborhood houses"
+
+[[topic]]
+say = ["winter", "december", "january", "cold"]
+search = "snowy neighborhood houses"
+
+[[topic]]
+say = ["spring", "april", "may"]
+search = "spring house garden"
+
+[[topic]]
+say = ["insurance", "claim", "deductible"]
+search = "paperwork kitchen table"
+
+[[topic]]
+say = ["house", "home", "homeowner", "homeowners", "fairfield", "westport", "connecticut"]
+search = "new england colonial house"
