@@ -16,6 +16,8 @@ from .config import PKG, cache_dir, secret
 from .cuts import edited_length, norm, to_edited
 
 UA = "mhg-faceedit/1.0 (+https://myhouseguardian.com)"
+# Saying the company name shouldn't trigger the generic "house" B-roll.
+IGNORE = [["my", "house", "guardian"], ["my", "house", "guardian's"]]
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
 
 
@@ -41,8 +43,13 @@ def choose(words: list[dict], segments: list[dict], topics: list[dict], cfg: dic
     total = edited_length(segments)
     dur = cfg["clip_seconds"]
     budget = max(0, int(total // cfg["seconds_per_clip"]))
-    spoken = [w for w in words if not w.get("filler")]
+    from .captions import join_hyphens
+    spoken = join_hyphens([w for w in words if not (w.get("filler") or w.get("retake"))])
     toks = [norm(w["w"]) for w in spoken]
+    for i in range(len(toks)):
+        for name in IGNORE:
+            if toks[i:i + len(name)] == name:
+                toks[i:i + len(name)] = [""] * len(name)
 
     hits = []
     for i in range(len(spoken)):
@@ -104,7 +111,8 @@ class _Finder:
             self.used.add(str(hit))
             return True
         if not self.key:
-            self.warnings.append("PEXELS_API_KEY isn't set, so no stock B-roll was pulled (see .env.example).")
+            self.warnings.append(f"No clip in your B-roll folder for \"{m['search']}\" (said: \"{m['said']}\"). "
+                                 f"Add one with those words in its file name.")
             return False
         try:
             choice = _pexels_search(m["search"], m["seconds"], self.key, self.used)

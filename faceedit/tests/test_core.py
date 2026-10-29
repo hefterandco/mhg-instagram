@@ -88,6 +88,21 @@ def test_hyphenated_words_are_rejoined_in_captions():
     assert [[w["t"] for w in g] for g in chunk(ws, 3, 30)] == [["one-call", "handle-it-all"]]
 
 
+def test_broll_ignores_company_name_and_matches_hyphenated_phrases():
+    import tempfile
+    ws = words(*[(f"w{i}", i * 0.5, i * 0.5 + 0.3) for i in range(60)])
+    for k, t in zip(range(8, 11), ("My", "House", "Guardian")):
+        ws[k]["w"] = t                       # company name: must not trigger "house" B-roll
+    ws[30]["w"], ws[31]["w"], ws[32]["w"] = "long", "to", "-do"
+    ws[33]["w"] = "list."
+    segs = [{"start": 0.0, "end": 30.0}]
+    d = Path(tempfile.mkdtemp())
+    (d / "colonial-house.mp4").write_bytes(b"")
+    (d / "home-to-do-list-checklist.mp4").write_bytes(b"")
+    picked, _ = broll.choose(ws, segs, broll.load_topics(), S["broll"], str(d))
+    assert [p["said"] for p in picked] == ["to-do list."]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

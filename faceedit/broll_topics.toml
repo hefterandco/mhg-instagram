@@ -40,7 +40,11 @@ say = ["furnace", "boiler", "heating", "heat", "thermostat"]
 search = "adjusting home thermostat"
 
 [[topic]]
-say = ["hvac", "air conditioner", "ac", "condenser", "air filter", "filters"]
+say = ["air filter", "air filters", "filter", "filters"]
+search = "replacing furnace air filter"
+
+[[topic]]
+say = ["hvac", "air conditioner", "ac", "condenser"]
 search = "hvac technician air conditioner"
 
 [[topic]]
@@ -96,7 +100,15 @@ say = ["holiday lights", "christmas lights"]
 search = "house christmas lights"
 
 [[topic]]
-say = ["handyman", "repair", "fix", "fixing", "to-do list", "honey-do"]
+say = ["to-do list", "honey-do", "checklist"]
+search = "home to do list checklist"
+
+[[topic]]
+say = ["contractor", "contractors", "chasing contractors"]
+search = "contractor truck arriving house"
+
+[[topic]]
+say = ["handyman", "repair", "fix", "fixing"]
 search = "handyman repair home"
 
 [[topic]]
