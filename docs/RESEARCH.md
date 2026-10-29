@@ -178,7 +178,7 @@ From [Instagram Error Codes](https://developers.facebook.com/documentation/insta
 ### Other failure modes
 - **Media hosting:** media must be on a **public server at the moment of publishing**, because Meta fetches it with cURL ([Publish Content](https://developers.facebook.com/docs/instagram-platform/content-publishing)).
   - This repo serves images from `raw.githubusercontent.com/<repo>/<commit-sha>/…`. That works **only because the repo is public**; I checked and it returns `200 image/jpeg`. Making the repo private would break publishing (code 9004).
-  - Whether `raw.githubusercontent.com` serves MP4 with a content type Meta accepts for Reels is ⚠️ UNCONFIRMED.
+  - **Tested 2026-10-29 (Test video hosting workflow, run 40944625925):** Instagram downloaded and processed a 9:16 H.264/AAC test reel from all three: `raw.githubusercontent.com` (served as `application/octet-stream`), the GitHub Release link (which redirects), and the signed link it redirects to. The poster uses the Release, so videos stay out of the repo.
 - **Token expiry:** a token that isn't refreshed within 60 days dies permanently ([Business Login for Instagram](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login)). The weekly refresh also depends on `GH_SECRETS_TOKEN`, which expires after 1 year, so that's a second expiry date to track.
 - **GitHub schedule** ([GitHub: events that trigger workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)):
   - Scheduled runs "can be delayed during periods of high loads", and the start of each hour is busiest.
