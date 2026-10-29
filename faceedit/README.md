@@ -1,6 +1,6 @@
 # faceedit: face-to-camera Reels editor
 
-Turns a raw clip of you talking to the camera into a finished vertical Reel for My House Guardian. It runs on your laptop for free. The only outside service is Pexels, for free stock B-roll.
+Turns a raw clip of you talking to the camera into a finished vertical Reel for My House Guardian. It runs on your laptop for free. B-roll comes from your own clips in `~/Movies/MHG-broll`. Pexels stock footage is optional and currently skipped: Pexels paused new API keys, so `PEXELS_API_KEY` is left blank.
 
 What it does to a clip:
 
@@ -19,10 +19,12 @@ What it does to a clip:
 brew install ffmpeg
 cd mhg-instagram
 pip3 install -r faceedit/requirements.txt
-cp .env.example .env        # then fill in PEXELS_API_KEY (free, see below)
+cp .env.example .env        # PEXELS_API_KEY can stay blank (see below)
 ```
 
-**PEXELS_API_KEY** (free, no card): sign up at pexels.com, go to https://www.pexels.com/api/ and click "Your API Key". Paste it into `.env`. Without the key everything else still works, and the video just has no stock B-roll.
+**B-roll:** put your own clips in `~/Movies/MHG-broll`, named by what's in them, e.g. `gutter-cleaning-westport.mp4`. When you say a matching word, faceedit cuts to that clip. That folder is set as `local_dir` in `faceedit.toml`.
+
+**PEXELS_API_KEY** (optional, skipped for now): Pexels has paused new API keys. If they reopen, get a free key at https://www.pexels.com/api/ and paste it into `.env` to add stock B-roll when your own clips don't match. Without it everything works; edits just print a note that no stock B-roll was pulled.
 
 The first transcription downloads the Whisper model once (`small.en`, about 480 MB). After that it runs offline.
 
