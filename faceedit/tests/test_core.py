@@ -83,6 +83,11 @@ def test_remove_spans_splits_segments():
     assert segs == [{"start": 0.0, "end": 1.0}, {"start": 1.4, "end": 4.95}]
 
 
+def test_hyphenated_words_are_rejoined_in_captions():
+    ws = words(("one", 0, .2), ("-call", .2, .4), ("handle", .5, .7), ("-it", .7, .8), ("-all.", .8, 1.0))
+    assert [[w["t"] for w in g] for g in chunk(ws, 3, 30)] == [["one-call", "handle-it-all"]]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

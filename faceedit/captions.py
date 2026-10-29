@@ -20,9 +20,20 @@ def _clean(word: str) -> str:
     return w.replace("\\", "").replace("{", "(").replace("}", ")")
 
 
+def join_hyphens(words: list[dict]) -> list[dict]:
+    """Whisper splits hyphenated words ("to", "-do"); glue them back: "to-do"."""
+    out: list[dict] = []
+    for w in words:
+        if out and w["w"].startswith("-"):
+            out[-1] = {**out[-1], "w": out[-1]["w"] + w["w"], "e": w["e"]}
+        else:
+            out.append(w)
+    return out
+
+
 def chunk(words: list[dict], max_words: int, max_chars: int) -> list[list[dict]]:
     chunks, cur = [], []
-    for w in words:
+    for w in join_hyphens(words):
         text = _clean(w["w"])
         if not text:
             continue
