@@ -8,7 +8,7 @@ from pathlib import Path
 from . import broll as broll_mod
 from .captions import build_ass
 from .cards import endcard_png, title_png
-from .config import FONTS
+from .config import ASSETS, FONTS
 from .cuts import edited_length, edited_words, to_edited
 from .media import probe, run_ffmpeg
 
@@ -94,6 +94,17 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
                  f"fade=t=out:st={max(0, secs - 0.4):.2f}:d=0.4:alpha=1[tt]")
         g.append(f"[{v}][tt]overlay=0:0:eof_action=pass:format=auto[vt]")
         v = "vt"
+        n_in += 1
+
+    # 3b. Logo in the top-right corner for the whole video (the end card has its own).
+    wm = settings.get("watermark", {})
+    if wm.get("enabled"):
+        start = min(settings["title"]["seconds"], L) - 0.4 if plan.get("title") and wm.get("after_title") else 0
+        args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{L:.2f}", "-i", str(ASSETS / "mark-full.png")]
+        g.append(f"[{n_in}:v]scale={wm['width']}:-1:flags=lanczos,format=rgba,"
+                 f"colorchannelmixer=aa={wm['opacity']},fade=t=in:st={max(0, start):.2f}:d=0.4:alpha=1[wm]")
+        g.append(f"[{v}][wm]overlay={W - wm['width'] - wm['margin']}:{wm['top']}:eof_action=pass:format=auto[vw]")
+        v = "vw"
         n_in += 1
 
     # 4. Word-by-word captions.

@@ -61,4 +61,12 @@ local_dir = "~/Movies/MHG-broll"  # your own clips, used before Pexels (Pexels i
 enabled = true
 seconds = 2.5
 tagline = "Your House, Our Problems"
-lines = ["@myhouseguardian", "myhouseguardian.com", "201-280-2909"]
+lines = ["@myhouseguardian", "myhouseguardian.com", "andrew@myhouseguardian.com", "201-280-2909"]
+
+[watermark]
+enabled = true
+width = 150             # logo width in pixels (video is 1080 wide)
+margin = 44             # gap from the right edge
+top = 210               # down from the top, below Instagram's top bar and camera icon
+opacity = 0.92
+after_title = true      # fade in as the hook title fades out, so they never overlap
