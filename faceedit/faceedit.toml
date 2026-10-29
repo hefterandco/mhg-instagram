@@ -1,0 +1,64 @@
+# My House Guardian face-video editor settings. No secrets here; the Pexels key
+# goes in .env (see .env.example) as PEXELS_API_KEY.
+
+[output]
+width = 1080
+height = 1920
+fps = 30
+crf = 20                 # lower = better quality, bigger file
+preset = "veryfast"      # "slow" for a final export if you have time
+loudness = -14           # LUFS; Instagram plays back around here
+
+[transcribe]
+model = "small.en"       # free, runs on your laptop; "medium.en" is slower but more accurate
+language = "en"
+
+[cuts]
+max_pause = 0.30         # pauses longer than this get cut (seconds)
+pad_before = 0.08        # breathing room kept before a word
+pad_after = 0.14         # and after
+fillers = ["um", "umm", "uh", "uhh", "uhm", "erm", "er", "ah", "hmm", "mm", "mhm"]
+punch_in = 1.12          # zoom on every other jump cut; 1.0 turns it off
+
+[reframe]
+face_height = 0.38       # where your eyes-ish land, as a share of frame height, when zoomed
+
+[captions]
+font = "Nunito Sans ExtraBold"
+size = 84
+max_words = 3
+max_chars = 18
+color = "#FBF4E8"        # cream
+active_color = "#E0956A" # warm clay, the word being spoken
+outline_color = "#1F2D23"
+outline = 7
+bottom_margin = 540      # pixels up from the bottom, clear of Instagram's buttons
+# Whisper sometimes mishears the company name; these fix caption text.
+corrections = [
+  ["my home guardian", "My House Guardian"],
+  ["my house guardian", "My House Guardian"],
+  ["my house guardians", "My House Guardian's"],
+]
+
+[title]
+seconds = 3.0
+font = "Fraunces SemiBold"
+size = 76
+text_color = "#3A5240"
+box_color = "#FBF4E8"
+top = 250
+
+[broll]
+enabled = true
+clip_seconds = 2.4       # how long each cutaway lasts
+min_gap = 4.0            # seconds of face between cutaways
+protect_start = 2.0      # never cover the hook
+protect_end = 1.0
+seconds_per_clip = 7.0   # at most one cutaway per this many seconds of video
+local_dir = ""           # optional folder of your own clips, used before Pexels
+
+[endcard]
+enabled = true
+seconds = 2.5
+tagline = "Your House, Our Problems"
+lines = ["@myhouseguardian", "myhouseguardian.com", "201-280-2909"]

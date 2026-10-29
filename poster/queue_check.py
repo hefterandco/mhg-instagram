@@ -23,6 +23,8 @@ QUEUE_DIR = ROOT / "queue"
 STORIES_DIR = ROOT / "stories"
 # Reel videos are too big for the repo, so they live on this GitHub Release as <folder>.mp4.
 REELS_RELEASE = "reels"
+# faceedit writes this as the caption; a post holding it is a draft and never publishes.
+CAPTION_PLACEHOLDER = "WRITE THE CAPTION HERE"
 LOCAL_TZ = ZoneInfo("America/New_York")
 
 MAX_CAPTION = 2200
@@ -41,6 +43,14 @@ STORY_RATIO = 9 / 16
 
 def load_post(folder: Path) -> dict:
     return json.loads((folder / "post.json").read_text())
+
+
+def is_draft(folder: Path) -> bool:
+    """True while the caption is still faceedit's placeholder."""
+    try:
+        return CAPTION_PLACEHOLDER in load_post(folder).get("caption", "")
+    except (OSError, ValueError, AttributeError):
+        return False
 
 
 def jpeg_size(path: Path) -> tuple[int, int] | None:
@@ -231,6 +241,9 @@ def main() -> int:
     for folder in sorted(p for p in QUEUE_DIR.iterdir() if p.is_dir()):
         result = folder / "result.json"
         done = result.exists()
+        if not done and is_draft(folder):
+            print(f"[draft] {folder.name}: write the caption in post.json; it won't post until you do")
+            continue
         problems = [] if done else check_post(folder)  # done posts: date and rules no longer matter
         if done:
             try:
