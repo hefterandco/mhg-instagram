@@ -13,6 +13,23 @@ from .cuts import edited_length, edited_words, to_edited
 from .media import probe, run_ffmpeg
 
 XFADE = 0.35
+AFADE = 0.03  # audio fade at each cut: long enough to avoid clicks and clipped breaths
+
+
+def _push(amount: float, seconds: float, fps: int, anchor_y: float) -> str:
+    """A slow, sub-pixel-smooth zoom-in across one segment, centred on the face line.
+
+    ffmpeg's perspective filter maps a shrinking box onto the full frame each frame,
+    which (unlike zoompan or per-frame scale) doesn't wobble.
+    """
+    if amount <= 0:
+        return ""
+    frames = max(1, round(seconds * fps))
+    s = f"({amount}*min(in,{frames})/{frames})"
+    x0, x1 = f"W*0.5*{s}", f"W-W*0.5*{s}"
+    y0, y2 = f"H*{anchor_y}*{s}", f"H-H*{1 - anchor_y:.3f}*{s}"
+    return (f",perspective=x0='{x0}':y0='{y0}':x1='{x1}':y1='{y0}':x2='{x0}':y2='{y2}':"
+            f"x3='{x1}':y3='{y2}':interpolation=cubic:eval=frame")
 
 
 def snap_to_edited(t: float, segments: list[dict]) -> float:
@@ -43,7 +60,9 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
     n_in = 1
     g: list[str] = []
 
-    # 1. Kept segments: trim, crop to 9:16 on the face, scale, join.
+    # 1. Kept segments: trim, crop to 9:16 on the face, scale, slow push-in, join.
+    push = settings.get("motion", {}).get("push", 0.0)
+    fy = settings["reframe"]["face_height"]
     n = len(segs)
     g.append(f"[0:v]split={n}" + "".join(f"[vs{i}]" for i in range(n)))
     g.append(f"[0:a]asplit={n}" + "".join(f"[as{i}]" for i in range(n)))
@@ -51,10 +70,11 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
         x, y, cw, ch = s["crop"]
         d = s["end"] - s["start"]
         g.append(f"[vs{i}]trim=start={s['start']:.3f}:end={s['end']:.3f},setpts=PTS-STARTPTS,"
-                 f"crop={cw}:{ch}:{x}:{y},scale={W}:{H}:flags=lanczos,setsar=1,fps={FPS},format=yuv420p[v{i}]")
+                 f"crop={cw}:{ch}:{x}:{y},scale={W}:{H}:flags=lanczos,setsar=1,fps={FPS}"
+                 f"{_push(push, d, FPS, fy)},format=yuv420p[v{i}]")
         g.append(f"[as{i}]atrim=start={s['start']:.3f}:end={s['end']:.3f},asetpts=PTS-STARTPTS,"
                  f"aformat=sample_rates=48000:channel_layouts=stereo,"
-                 f"afade=t=in:d=0.012,afade=t=out:st={max(0, d - 0.012):.3f}:d=0.012[a{i}]")
+                 f"afade=t=in:d={AFADE},afade=t=out:st={max(0, d - AFADE):.3f}:d={AFADE}[a{i}]")
     g.append("".join(f"[v{i}][a{i}]" for i in range(n)) + f"concat=n={n}:v=1:a=1[vcat][acat]")
     v = "vcat"
 

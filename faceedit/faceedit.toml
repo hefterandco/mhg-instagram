@@ -15,10 +15,15 @@ language = "en"
 
 [cuts]
 max_pause = 0.30         # pauses longer than this get cut (seconds)
-pad_before = 0.08        # breathing room kept before a word
-pad_after = 0.14         # and after
+pad_before = 0.12        # breathing room kept before a word
+pad_after = 0.22         # and after; together ~1/3 s of air where a pause was cut, so it doesn't sound rushed
 fillers = ["um", "umm", "uh", "uhh", "uhm", "erm", "er", "ah", "hmm", "mm", "mhm"]
-punch_in = 1.12          # zoom on every other jump cut; 1.0 turns it off
+hidden_fillers = true    # also cut um/uh sounds Whisper didn't write down (breaths are kept)
+retakes = true           # restarted a line? drop the earlier take, keep the later one
+punch_in = 1.10          # zoom level on every other cut, so jump cuts read as deliberate; 1.0 turns it off
+
+[motion]
+push = 0.04              # slow zoom-in across each shot (0.04 = about 4%); 0 turns it off
 
 [reframe]
 face_height = 0.38       # where your eyes-ish land, as a share of frame height, when zoomed
@@ -33,6 +38,8 @@ active_color = "#E0956A" # warm clay, the word being spoken
 outline_color = "#1F2D23"
 outline = 7
 bottom_margin = 540      # pixels up from the bottom, clear of Instagram's buttons
+pop = true               # each new caption line pops in
+active_scale = 108       # the word being spoken is this % size (and clay)
 # Whisper sometimes mishears the company name; these fix caption text.
 corrections = [
   ["my home guardian", "My House Guardian"],

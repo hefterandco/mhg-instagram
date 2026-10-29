@@ -1,7 +1,9 @@
 """Finds your face and picks a 9:16 crop for each kept segment.
 
-One crop per segment (not a drifting pan), so the frame only moves on a jump
-cut, which reads as intentional. Every other jump cut gets a slight punch-in.
+One crop per segment (not a drifting pan). The framing holds steady across
+cuts unless you've actually moved, so the frame doesn't hop on every cut. Every
+other cut changes zoom level, so a jump cut reads as intentional; render.py adds
+a slow push-in within each segment on top.
 """
 from __future__ import annotations
 
@@ -10,6 +12,7 @@ import statistics
 from .media import Probe
 
 SAMPLES_PER_SEC = 3
+STEADY = 0.05  # face moved less than this share of the frame: keep the same framing
 
 
 def detect_faces(probe: Probe) -> list[tuple[float, float, float, float]]:
@@ -58,15 +61,20 @@ def plan_crops(segments: list[dict], faces: list[tuple], probe: Probe,
     all_y = [f[2] for f in faces] or [0.42]
     gx, gy = statistics.median(all_x), statistics.median(all_y)
 
+    prev = (gx, gy)
     for i, seg in enumerate(segments):
         inside = [f for f in faces if seg["start"] - 0.2 <= f[0] <= seg["end"] + 0.2]
         if not inside and faces:
             nearest = min(faces, key=lambda f: abs(f[0] - (seg["start"] + seg["end"]) / 2))
             inside = [nearest] if abs(nearest[0] - seg["start"]) < 3 else []
-        cx = statistics.median(f[1] for f in inside) if inside else gx
-        cy = statistics.median(f[2] for f in inside) if inside else gy
+        cx = statistics.median(f[1] for f in inside) if inside else prev[0]
+        cy = statistics.median(f[2] for f in inside) if inside else prev[1]
+        # Small drifts in the face detection would make the frame hop; hold it still.
+        if abs(cx - prev[0]) < STEADY and abs(cy - prev[1]) < STEADY:
+            cx, cy = prev
+        prev = (cx, cy)
 
-        zoom = punch_in if (i % 2 == 1 and seg["end"] - seg["start"] >= 1.0) else 1.0
+        zoom = punch_in if (i % 2 == 1 and seg["end"] - seg["start"] >= 1.5) else 1.0
         cw, ch = base_w / zoom, base_h / zoom
         x = min(max(cx * W - cw / 2, 0), W - cw)
         y = min(max(cy * H - face_height * ch, 0), H - ch) if ch < H - 1 else 0

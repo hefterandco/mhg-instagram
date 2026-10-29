@@ -5,13 +5,14 @@ Turns a raw clip of you talking to the camera into a finished vertical Reel for 
 What it does to a clip:
 
 1. **Transcribes** it word by word with Whisper, running locally.
-2. **Cuts** pauses longer than 0.3s and fillers ("um", "uh"), so the pacing is tight but still sounds like you.
-3. **Reframes** to 9:16 (1080×1920) centered on your face. It punches in slightly on every other jump cut.
-4. **Adds B-roll.** When you say "gutters", "basement", "snow", "dryer vent" and so on, a matching 2.4s cutaway plays over the video while your voice keeps going. Clips come from your own folder first, then from Pexels.
-5. **Adds captions** in Nunito Sans, word by word, with the word being spoken in clay. "My Home Guardian" is auto-corrected.
-6. **Adds a hook title** (optional) at the top for the first 3 seconds, in Fraunces on cream.
-7. **Adds an end card**: the house mark, "Your House, Our Problems", @myhouseguardian, the website and the phone number.
-8. **Fixes the audio** to Instagram loudness (−14 LUFS) and filters out low rumble.
+2. **Cuts dead air and fillers.** Pauses longer than 0.3s are cut down to about a third of a second, so the pacing is tight without sounding rushed. "Um" and "uh" are cut, including ones Whisper didn't write down: faceedit listens for voiced sounds between words that have no word on them. Silent breaths stay, so it still sounds human.
+3. **Drops retakes.** If you restart a line ("My House Guardian gives you… / My House Guardian gives your family…"), the earlier take is removed and the later one kept. The plan lists what it dropped. To bring one back, remove `"retake": true` from those words in the plan.
+4. **Reframes** to 9:16 (1080×1920) on your face, and holds the framing steady across cuts unless you actually move. Every other cut steps in 10% closer, so jump cuts read as a deliberate camera change. Within each shot there's a slow, smooth push-in (about 4%) to keep the frame alive. Audio joins are softened so cuts don't click or clip a breath.
+5. **Adds B-roll.** When you say "gutters", "basement", "snow", "dryer vent" and so on, a matching 2.4s cutaway plays over the video while your voice keeps going. Clips come from your own folder first, then from Pexels.
+6. **Adds captions** in Nunito Sans, word by word. Each line pops in, and the word being spoken is clay and slightly bigger. "My Home Guardian" is auto-corrected.
+7. **Adds a hook title** (optional) at the top for the first 3 seconds, in Fraunces on cream. The house logo then sits in the top-right corner for the rest of the video.
+8. **Adds an end card**: the house mark, "Your House, Our Problems", @myhouseguardian, the website, your email and the phone number.
+9. **Fixes the audio** to Instagram loudness (−14 LUFS) and filters out low rumble.
 
 ## One-time setup (Mac)
 
@@ -101,7 +102,7 @@ It needs the `reels` release to exist (SETUP.md › Reels) and the GitHub login 
 
 ## Tuning
 
-- `faceedit/faceedit.toml` holds caption size, colors and position, cut tightness, B-roll frequency, the title look and the end card text.
+- `faceedit/faceedit.toml` holds caption size, colors, position and pop, cut tightness, filler and retake removal, zoom and push-in, B-roll frequency, the title look, the corner logo and the end card text.
 - `faceedit/broll_topics.toml` maps what you say to the B-roll it searches for. Topics nearer the top take priority. Add your own.
 
 ## Notes

@@ -40,12 +40,18 @@ def make_plan(src: Path, args, settings: dict) -> dict:
         raise SystemExit("No speech found in this clip.")
     cuts.mark_fillers(words, cc["fillers"])
     cuts.apply_corrections(words, settings["captions"]["corrections"])
+    retakes = cuts.mark_retakes(words) if cc.get("retakes", True) and not args.no_cuts else []
 
     tail = 0.4 if (settings["endcard"]["enabled"] and not args.no_endcard) else 0.1
     if args.no_cuts:
         segs = [{"start": 0.0, "end": round(p.duration, 3)}]
     else:
         segs = cuts.keep_segments(words, p.duration, cc["max_pause"], cc["pad_before"], cc["pad_after"], tail)
+    hidden = []
+    if cc.get("hidden_fillers", True) and not args.no_cuts:
+        from .fillers import hidden_fillers
+        hidden = hidden_fillers(src, words)
+        segs = cuts.remove_spans(segs, hidden)
 
     print("Finding your face...")
     faces = [] if args.no_reframe else reframe.detect_faces(p)
@@ -64,14 +70,20 @@ def make_plan(src: Path, args, settings: dict) -> dict:
         "captions": not args.no_captions,
         "endcard": not args.no_endcard,
         "segments": segs,
+        "hidden_fillers": hidden,
         "broll": moments,
         "words": words,
     }
     fillers = sum(1 for w in words if w.get("filler"))
     new_len = cuts.edited_length(segs)
     print(f"{p.duration:.1f}s raw -> {new_len:.1f}s edited: {len(segs) - 1} cuts, "
-          f"{fillers} fillers out, face found in {len(faces)} samples, "
+          f"{fillers} fillers out (+{len(hidden)} heard but not transcribed), "
+          f"{len(retakes)} retakes dropped, face found in {len(faces)} samples, "
           f"{len(moments)} B-roll cutaways")
+    for r in retakes:
+        print(f"  retake dropped (the later take is kept): \"{r}\"")
+    for a, b in hidden:
+        print(f"  cut a sound with no word at {a:.2f}-{b:.2f}s (likely um/uh)")
     for m in moments:
         print(f"  B-roll at {m['at']:.1f}s (\"{m['said']}\"): {m['search']} [{m.get('source')}]")
     for w in warnings:

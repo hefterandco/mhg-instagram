@@ -60,6 +60,29 @@ def test_broll_picks_specific_topic_and_respects_hook():
     assert all(p["at"] > S["broll"]["protect_start"] for p in picked)
 
 
+def test_retake_drops_earlier_take():
+    ws = words(("My", 1, 1.2), ("House", 1.2, 1.4), ("Guardian", 1.4, 1.7), ("gives", 1.7, 1.9), ("you", 1.9, 2.0),
+               ("or", 2.0, 2.1), ("family", 2.1, 2.5), ("help.", 2.5, 2.9),
+               ("My", 3.8, 4.0), ("House", 4.0, 4.2), ("Guardian", 4.2, 4.5), ("gives", 4.5, 4.7), ("your", 4.7, 4.9),
+               ("family", 4.9, 5.3), ("help.", 5.3, 5.7))
+    dropped = cuts.mark_retakes(ws)
+    assert len(dropped) == 1 and dropped[0].startswith("My House Guardian gives you")
+    assert all(w.get("retake") for w in ws[:8]) and not any(w.get("retake") for w in ws[8:])
+    segs = cuts.keep_segments(ws, 6.0, 0.3, 0.12, 0.22)
+    assert segs[0]["start"] > 3.5  # the first take is gone
+
+
+def test_same_line_said_far_apart_is_not_a_retake():
+    line = [("That's", 0, .2), ("why", .2, .4), ("I'm", .4, .6), ("building", .6, .9), ("this.", .9, 1.2)]
+    ws = words(*line, *[(w, s + 30, e + 30) for w, s, e in line])
+    assert cuts.mark_retakes(ws) == []
+
+
+def test_remove_spans_splits_segments():
+    segs = cuts.remove_spans([{"start": 0.0, "end": 5.0}], [(1.0, 1.4), (4.95, 6.0)])
+    assert segs == [{"start": 0.0, "end": 1.0}, {"start": 1.4, "end": 4.95}]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

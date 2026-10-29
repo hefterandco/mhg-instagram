@@ -35,9 +35,57 @@ def apply_corrections(words: list[dict], corrections: list[list[str]]) -> None:
                 i += 1
 
 
+def phrases(words: list[dict], gap: float = 0.6) -> list[list[int]]:
+    """Word indexes grouped into phrases: split at end punctuation or a pause."""
+    out, cur = [], []
+    for i, w in enumerate(words):
+        if cur and w["s"] - words[cur[-1]]["e"] > gap:
+            out.append(cur)
+            cur = []
+        cur.append(i)
+        if re.search(r"[.?!]$", w["w"]):
+            out.append(cur)
+            cur = []
+    return out + ([cur] if cur else [])
+
+
+def mark_retakes(words: list[dict], lead: int = 5, min_match: int = 4, window: float = 15.0) -> list[str]:
+    """Marks a phrase as a retake when a phrase starting soon after opens with
+    (nearly) the same words, i.e. a line restarted after a stumble. The later,
+    usually cleaner, take is kept. Returns the dropped phrases' text."""
+    sub = [w for w in words if not w.get("filler")]
+    groups = phrases(sub)
+    dropped = []
+    for gi, g in enumerate(groups):
+        if len(g) < lead:
+            continue
+        head = [norm(sub[k]["w"]) for k in g[:lead]]
+        for later in groups[gi + 1:]:
+            if sub[later[0]]["s"] - sub[g[0]]["s"] > window:
+                break
+            if len(later) >= lead and sum(a == norm(sub[k]["w"]) for a, k in zip(head, later[:lead])) >= min_match:
+                for k in g:
+                    sub[k]["retake"] = True
+                dropped.append(" ".join(sub[k]["w"] for k in g))
+                break
+    return dropped
+
+
+def remove_spans(segments: list[dict], spans: list[tuple[float, float]], min_len: float = 0.15) -> list[dict]:
+    """Cuts the given (start, end) spans out of the kept segments, e.g. hidden fillers."""
+    out = []
+    for seg in segments:
+        pieces = [(seg["start"], seg["end"])]
+        for a, b in spans:
+            pieces = [p for s, e in pieces
+                      for p in ([(s, e)] if b <= s or a >= e else [(s, a), (b, e)]) if p[1] > p[0]]
+        out += [{"start": round(s, 3), "end": round(e, 3)} for s, e in pieces if e - s >= min_len]
+    return out
+
+
 def keep_segments(words: list[dict], duration: float, max_pause: float,
                   pad_before: float, pad_after: float, tail: float = 0.0) -> list[dict]:
-    spoken = [w for w in words if not w.get("filler")]
+    spoken = [w for w in words if not (w.get("filler") or w.get("retake"))]
     if not spoken:
         return [{"start": 0.0, "end": round(duration, 3)}]
     spans = []
@@ -71,7 +119,7 @@ def edited_words(words: list[dict], segments: list[dict]) -> list[dict]:
     """Spoken words that survive the edit, with edited-timeline times."""
     out = []
     for w in words:
-        if w.get("filler"):
+        if w.get("filler") or w.get("retake"):
             continue
         mid = (w["s"] + w["e"]) / 2
         if to_edited(mid, segments) is None:

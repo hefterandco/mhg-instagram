@@ -58,6 +58,13 @@ Style: Cap,{cfg['font']},{cfg['size']},{base},{base},{_ass_color(cfg['outline_co
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
     lines = []
+    # The spoken word is clay and slightly bigger; each new line pops in.
+    big = cfg.get("active_scale", 100)
+    on, off = f"{{\\c{active}\\fscx{big}\\fscy{big}}}", f"{{\\c{base}\\fscx100\\fscy100}}"
+    grow = "\\t(0,90,\\fscx{0}\\fscy{0})"
+    pop_on = f"{{\\c{active}\\fscx{big * .82:.0f}\\fscy{big * .82:.0f}{grow.format(big)}}}"
+    pop_off = f"{{\\c{base}\\fscx82\\fscy82{grow.format(100)}}}"
+    pop = "{\\fscx82\\fscy82" + grow.format(100) + "}"
     groups = chunk(words, cfg["max_words"], cfg["max_chars"])
     for gi, g in enumerate(groups):
         nxt = groups[gi + 1][0]["s"] if gi + 1 < len(groups) else None
@@ -69,7 +76,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             end = g[wi + 1]["s"] if wi + 1 < len(g) else g_end
             if end <= start:
                 continue
-            text = " ".join(
-                (f"{{\\c{active}}}{x['t']}{{\\c{base}}}" if xi == wi else x["t"]) for xi, x in enumerate(g))
-            lines.append(f"Dialogue: 0,{_ts(start)},{_ts(end)},Cap,,0,0,0,,{text}")
+            popping = cfg.get("pop") and wi == 0
+            a, b = (pop_on, pop_off) if popping else (on, off)
+            text = " ".join((f"{a}{x['t']}{b}" if xi == wi else x["t"]) for xi, x in enumerate(g))
+            lines.append(f"Dialogue: 0,{_ts(start)},{_ts(end)},Cap,,0,0,0,,{pop if popping else ''}{text}")
     return head + "\n".join(lines) + "\n"

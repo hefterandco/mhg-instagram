@@ -4,3 +4,4 @@ faster-whisper>=1.0
 av<19
 opencv-python-headless>=4.8,<5
 pillow>=10
+numpy  # already installed with OpenCV; used to hear fillers Whisper missed
