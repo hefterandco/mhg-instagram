@@ -82,7 +82,7 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
     credits = []
     for m in plan.get("broll", []):
         m.setdefault("seconds", settings["broll"]["clip_seconds"])
-    for w in broll_mod.fill_missing(plan.get("broll", []), settings["broll"]["local_dir"]):
+    for w in broll_mod.fill_missing(plan.get("broll", []), settings["broll"]["local_dir"], settings["broll"]):
         print(f"  note: {w}")
     for j, m in enumerate(plan.get("broll", [])):
         if not (m.get("file") or m.get("download")):

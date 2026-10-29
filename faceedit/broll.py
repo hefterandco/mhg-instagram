@@ -62,7 +62,7 @@ def choose(words: list[dict], segments: list[dict], topics: list[dict], cfg: dic
                 hits.append((rank, i, t, " ".join(spoken[k]["w"] for k in range(i, i + len(phrase)))))
                 break
 
-    finder = _Finder(local_dir)
+    finder = _Finder(local_dir, cfg)
     picked, tried = [], set()
     for rank, i, t, said in sorted(hits, key=lambda h: h[:2]):
         if len(picked) >= budget:
@@ -78,10 +78,8 @@ def choose(words: list[dict], segments: list[dict], topics: list[dict], cfg: dic
         if any(abs(at - p["_t"]) < dur + cfg["min_gap"] for p in picked):
             continue
         tried.add(t["search"])
-        m = {"_t": at, "at": round(spoken[i]["s"] - 0.1, 3), "seconds": dur,
-             "said": said, "search": t["search"]}
-        if "stock" in t:
-            m["stock"] = t["stock"]
+        m = {"_t": at, "at": round(spoken[i]["s"] - 0.1, 3), "seconds": dur, "said": said,
+             "kind": t.get("kind", ""), "search": t["search"], "stock": t.get("stock", []), "allow": t.get("allow", [])}
         if finder.fill(m):
             picked.append(m)
     picked.sort(key=lambda p: p["_t"])
@@ -90,9 +88,9 @@ def choose(words: list[dict], segments: list[dict], topics: list[dict], cfg: dic
     return picked, list(dict.fromkeys(finder.warnings))
 
 
-def fill_missing(moments: list[dict], local_dir: str = "") -> list[str]:
+def fill_missing(moments: list[dict], local_dir: str = "", cfg: dict | None = None) -> list[str]:
     """Finds clips for hand-added plan entries that only have a "search"."""
-    finder = _Finder(local_dir)
+    finder = _Finder(local_dir, cfg or {})
     for m in moments:
         if not (m.get("file") or m.get("download")):
             finder.fill(m)
@@ -101,105 +99,107 @@ def fill_missing(moments: list[dict], local_dir: str = "") -> list[str]:
 
 # ---------------------------------------------------------------- sources
 
+SOURCE_KEYS = ("source", "file", "download", "pixabay_id", "pexels_id", "page", "by", "tags", "query",
+               "clip_length", "thumb")
+
+
+def apply_option(m: dict, opt: dict) -> None:
+    """Makes one candidate the clip this moment uses."""
+    for k in SOURCE_KEYS:
+        m.pop(k, None)
+    m.update(opt)
+
+
 class _Finder:
-    def __init__(self, local_dir: str = ""):
+    def __init__(self, local_dir: str = "", cfg: dict | None = None):
+        cfg = cfg or {}
         self.key = secret("PEXELS_API_KEY")
         self.pixabay = secret("PIXABAY_API_KEY")
         self.local = [p for p in Path(local_dir).expanduser().rglob("*")
                       if p.suffix.lower() in VIDEO_EXT] if local_dir else []
+        self.n = cfg.get("options", 3)
+        self.avoid = [a.lower() for a in cfg.get("avoid_tags", [])]
         self.used: set = set()
         self.warnings: list[str] = []
 
     def fill(self, m: dict) -> bool:
-        hit = _local_match(m["search"], self.local, self.used)
-        if hit:
-            m.update(source="local", file=str(hit))
-            self.used.add(str(hit))
-            return True
-        if self.pixabay:
+        """Finds up to `options` candidates: your own clips first, then stock (only for
+        topics that allow it). The first is used; the rest go on the review sheet."""
+        opts = [{"source": "local", "file": str(f)} for f in _local_matches(m["search"], self.local, self.used, self.n)]
+        stock = m.get("stock") or []
+        if len(opts) < self.n and stock and self.pixabay:
             try:
-                choice = _pixabay_search(m.get("stock", [m["search"]]), m["seconds"], self.pixabay, self.used)
+                opts += _pixabay_search(stock, m["seconds"], self.pixabay, self.used, self.n - len(opts),
+                                        [a for a in self.avoid if a not in m.get("allow", [])])
             except RuntimeError as e:
                 self.warnings.append(f"Pixabay search for '{m['search']}' failed: {e}")
-                choice = None
-            if choice:
-                m.update(choice)
-                self.used.add(f"pixabay-{choice['pixabay_id']}")
-                return True
-            if not self.key:
-                self.warnings.append(f"No clip for \"{m['search']}\" (said: \"{m['said']}\"): nothing in your "
-                                     f"B-roll folder and nothing relevant on Pixabay. Film one and add it.")
-                return False
-        if not self.key:
-            self.warnings.append(f"No clip in your B-roll folder for \"{m['search']}\" (said: \"{m['said']}\"). "
-                                 f"Add one with those words in its file name.")
+        if len(opts) < self.n and stock and self.key:
+            try:
+                choice = _pexels_search(stock[0], m["seconds"], self.key, self.used)
+                if choice:
+                    opts.append(choice)
+            except RuntimeError as e:
+                self.warnings.append(f"Pexels search for '{m['search']}' failed: {e}")
+        if not opts:
+            why = (" Stock isn't used here: this moment should show your own service."
+                   if not stock else " Nothing on-brand turned up in stock either.")
+            self.warnings.append(f"No clip for \"{m['said']}\": film one and name it with \"{m['search']}\" "
+                                 f"in ~/Movies/MHG-broll.{why}")
             return False
-        try:
-            choice = _pexels_search(m["search"], m["seconds"], self.key, self.used)
-        except RuntimeError as e:
-            self.warnings.append(f"Pexels search for '{m['search']}' failed: {e}")
-            return False
-        if not choice:
-            self.warnings.append(f"No Pexels clip found for '{m['search']}'.")
-            return False
-        m.update(choice)
-        self.used.add(choice["pexels_id"])
+        for o in opts:
+            self.used.add(o.get("file") or f"{o['source']}-{o.get(o['source'] + '_id')}")
+        m["options"] = opts
+        apply_option(m, opts[0])
         return True
 
 
-def _local_match(search: str, files: list[Path], used: set) -> Path | None:
+def _local_matches(search: str, files: list[Path], used: set, n: int) -> list[Path]:
     words = set(search.lower().split())
-    best, score = None, 0
+    scored = []
     for f in files:
         if str(f) in used:
             continue
         name = set(norm(t) for t in f.stem.replace("_", " ").replace("-", " ").split())
-        s = len(words & name)
-        if s > score:
-            best, score = f, s
-    return best
+        score = len(words & name)
+        if score:
+            scored.append((-score, f.name, f))
+    return [f for _, _, f in sorted(scored)[:n]]
 
 
-def _pexels_search(query: str, seconds: float, key: str, used: set) -> dict | None:
-    for orientation in ("portrait", None):
-        params = {"query": query, "per_page": 20, "size": "medium"}
-        if orientation:
-            params["orientation"] = orientation
-        url = "https://api.pexels.com/videos/search?" + urllib.parse.urlencode(params)
-        data = _get_json(url, key)
-        for v in data.get("videos", []):
-            if v["id"] in used or v.get("duration", 0) < seconds + 1:
-                continue
-            f = _best_file(v.get("video_files", []))
-            if f:
-                return {"source": "pexels", "pexels_id": v["id"], "download": f["link"],
-                        "page": v.get("url", ""), "by": (v.get("user") or {}).get("name", ""),
-                        "clip_length": v.get("duration", 0)}
-    return None
-
-
-def _pixabay_search(queries: list[str], seconds: float, key: str, used: set) -> dict | None:
-    """First relevant clip for the topic's short searches.
+def _pixabay_search(queries: list[str], seconds: float, key: str, used: set, n: int = 1,
+                    avoid: list[str] | None = None) -> list[dict]:
+    """Up to n on-brand clips for the topic's short searches.
 
     Pixabay matches ANY word of a search ("air filter" returns sky clouds), so a
-    clip only counts if its tags contain every word of the search.
+    clip only counts if its tags contain every word of the search, and none of
+    the avoid tags (scare, security, off-region, brands...).
     """
+    found = []
     for query in queries:
-        params = {"key": key, "q": query[:100], "video_type": "film", "safesearch": "true", "per_page": 30}
+        params = {"key": key, "q": query[:100], "video_type": "film", "safesearch": "true", "per_page": 50}
         data = _cached_json("https://pixabay.com/api/videos/?" + urllib.parse.urlencode(params))
         words = query.lower().split()
-        hits = [h for h in data.get("hits", [])
-                if f"pixabay-{h['id']}" not in used and h.get("duration", 0) >= seconds + 1
-                and all(any(w in tag.strip() for tag in h.get("tags", "").lower().split(",")) for w in words)]
+        hits = []
+        for h in data.get("hits", []):
+            tags = [t.strip() for t in h.get("tags", "").lower().split(",")]
+            tag_words = {w for t in tags for w in t.split()}
+            if (f"pixabay-{h['id']}" in used or any(f["pixabay_id"] == h["id"] for f in found)
+                    or h.get("duration", 0) < seconds + 1
+                    or not all(any(w in t for t in tags) for w in words)
+                    or any(a in tags or (" " not in a and a in tag_words) for a in (avoid or []))):
+                continue
+            hits.append(h)
         # Vertical clips first (they fill a Reel without cropping), then Pixabay's own ranking.
         hits.sort(key=lambda h: h["videos"]["medium"]["height"] < h["videos"]["medium"]["width"])
         for h in hits:
             f = _pixabay_file(h["videos"])
             if f:
-                return {"source": "pixabay", "pixabay_id": h["id"], "download": f["url"], "query": query,
-                        "tags": h.get("tags", ""), "page": h.get("pageURL", ""), "by": h.get("user", ""),
-                        "clip_length": h.get("duration", 0)}
-    return None
+                found.append({"source": "pixabay", "pixabay_id": h["id"], "download": f["url"], "query": query,
+                              "tags": h.get("tags", ""), "page": h.get("pageURL", ""), "by": h.get("user", ""),
+                              "clip_length": h.get("duration", 0), "thumb": h["videos"]["medium"].get("thumbnail", "")})
+                if len(found) >= n:
+                    return found
+    return found
 
 
 def _pixabay_file(variants: dict) -> dict | None:

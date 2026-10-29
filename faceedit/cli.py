@@ -72,6 +72,7 @@ def make_plan(src: Path, args, settings: dict) -> dict:
         "segments": segs,
         "hidden_fillers": hidden,
         "broll": moments,
+        "broll_missing": [w for w in warnings if w.startswith("No clip")],
         "words": words,
     }
     fillers = sum(1 for w in words if w.get("filler"))
@@ -91,6 +92,36 @@ def make_plan(src: Path, args, settings: dict) -> dict:
     if not faces and not args.no_reframe:
         print("  note: no face found, so the crop is centered.")
     return plan
+
+
+def review_broll(plan_path: Path, changes: list[str]) -> int:
+    """Lists each cutaway and its candidates; applies MOMENT=OPTION changes (0 drops it)."""
+    from .broll import apply_option
+    from .sheet import write_sheet
+    plan = json.loads(plan_path.read_text())
+    moments = plan.get("broll", [])
+    drop = set()
+    for ch in changes:
+        try:
+            k, opt = (int(x) for x in ch.split("="))
+            m = moments[k - 1]
+        except (ValueError, IndexError):
+            raise SystemExit(f'"{ch}" should look like 2=3 (moment 2 uses option 3) or 2=0 (drop moment 2)')
+        if opt == 0:
+            drop.add(k - 1)
+        elif 1 <= opt <= len(m.get("options", [])):
+            apply_option(m, m["options"][opt - 1])
+        else:
+            raise SystemExit(f"Moment {k} has {len(m.get('options', []))} options")
+    plan["broll"] = [m for i, m in enumerate(moments) if i not in drop]
+    plan_path.write_text(json.dumps(plan, indent=1))
+    for k, m in enumerate(plan["broll"], 1):
+        use = m.get("file") or m.get("page") or m.get("download")
+        print(f"{k}. \"{m['said']}\" [{m.get('kind', '')}] -> {Path(use).name if m.get('file') else use}"
+              f"  ({len(m.get('options', []))} options)")
+    sheet = write_sheet(plan, Path(plan["source"]).with_name(Path(plan["source"]).stem + ".broll.jpg"))
+    print(f"Sheet: {sheet}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -127,11 +158,16 @@ def main(argv: list[str] | None = None) -> int:
     sp_r.add_argument("--settings")
     sp_r.add_argument("--keep-temp", action="store_true")
     queue_opts(sp_r, "--queue-at")
+    sp_b = sub.add_parser("broll", help="review B-roll picks: list them, swap (2=3) or drop (2=0), redraw the sheet")
+    sp_b.add_argument("plan", type=Path)
+    sp_b.add_argument("changes", nargs="*", metavar="MOMENT=OPTION")
     sp_q = sub.add_parser("queue", help="upload a finished Reel and create its queue folder")
     sp_q.add_argument("video", type=Path)
     queue_opts(sp_q, "--at")
     args = ap.parse_args(argv)
 
+    if args.cmd == "broll":
+        return review_broll(args.plan, args.changes)
     if args.cmd == "queue":
         if not args.at:
             raise SystemExit('Say when to post: --at "2026-11-05 09:00"')
@@ -149,6 +185,10 @@ def main(argv: list[str] | None = None) -> int:
         plan_path = args.clip.with_suffix(".plan.json")
         plan_path.write_text(json.dumps(plan, indent=1))
         print(f"Plan saved: {plan_path}")
+        if plan["broll"] or plan["broll_missing"]:
+            from .sheet import write_sheet
+            sheet = write_sheet(plan, args.clip.with_name(args.clip.stem + ".broll.jpg"))
+            print(f"B-roll review sheet: {sheet}  (swap or drop picks: faceedit broll {plan_path} 2=3)")
         if args.cmd == "plan":
             return 0
         out = args.out or args.clip.with_name(args.clip.stem + ".edit.mp4")

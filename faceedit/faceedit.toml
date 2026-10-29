@@ -63,6 +63,22 @@ protect_start = 2.0      # never cover the hook
 protect_end = 1.0
 seconds_per_clip = 7.0   # at most one cutaway per this many seconds of video
 local_dir = "~/Movies/MHG-broll"  # your own clips, used before Pexels (Pexels is skipped while no key is set)
+options = 3              # candidates kept per moment, shown on the review sheet
+# Stock clips tagged with any of these are never used (see broll_topics.toml for why).
+avoid_tags = [
+  # scare and disaster, security imagery
+  "fire", "flame", "flames", "burning", "flood", "flooding", "disaster", "damage", "accident", "storm damage",
+  "police", "security", "alarm", "lock", "padlock", "surveillance", "cctv", "shield",
+  # off-brand people and moods
+  "elderly", "senior", "old man", "old woman", "grandmother", "grandfather", "nursing", "caregiver", "hospital",
+  "wheelchair", "anger", "angry", "stress", "sad", "crying",
+  # off-region or off-topic settings
+  "beach", "ocean", "sea", "palm", "tropical", "desert", "city", "skyscraper", "downtown", "traffic", "crowd", "mall",
+  "airport", "office", "restaurant", "food", "cooking", "dinner", "meal", "fish", "lake", "mountain", "village",
+  "netherlands", "mexico", "japan", "china", "india", "thailand", "dubai", "paris", "london", "italy", "korea",
+  # brands and text
+  "logo", "brand", "advertising", "sign",
+]
 
 [endcard]
 enabled = true
