@@ -1,0 +1,4 @@
+{
+  "times": ["08:30", "12:30", "18:30"],
+  "min_days_between_repeats": 3
+}

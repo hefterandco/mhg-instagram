@@ -28,7 +28,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from queue_check import QUEUE_DIR, check_post, load_post  # noqa: E402
+from queue_check import QUEUE_DIR, REELS_RELEASE, check_post, load_post, reel_release_url  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Config. Secrets are never hard-coded: fill them in as GitHub secrets
@@ -116,24 +116,86 @@ def api(method: str, path: str, params: dict | None = None) -> dict:
         raise ApiError(f"{method} {path}: {err.get('message', body[:300])}{hint}", code, subcode) from None
 
 
+class NotReadyYet(ApiError):
+    """Instagram is still processing the media; try again next run."""
+
+
 def wait_until_ready(container_id: str) -> None:
     for _ in range(STATUS_POLL_TRIES):
-        status = api("GET", container_id, {"fields": "status_code"}).get("status_code")
+        info = api("GET", container_id, {"fields": "status_code,status"})
+        status = info.get("status_code")
         if status in (None, "FINISHED"):
             return
         if status in ("ERROR", "EXPIRED"):
-            raise ApiError(f"container {container_id} ended with status {status}")
+            raise ApiError(f"container {container_id} ended with status {status}: {info.get('status', '')}")
         time.sleep(STATUS_POLL_SECONDS)
-    raise ApiError(f"container {container_id} was not ready after {STATUS_POLL_TRIES} checks")
+    raise NotReadyYet(f"container {container_id} was not ready after {STATUS_POLL_TRIES} checks")
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def release_video_url(folder_name: str) -> str:
+    """The reel's video lives on the "reels" GitHub Release as <folder>.mp4, not in the repo.
+
+    The release link redirects to a signed link that works for about an hour; hand
+    Instagram that signed link directly so it doesn't have to follow a redirect.
+    """
+    url = reel_release_url(folder_name)
+    try:
+        urllib.request.build_opener(_NoRedirect).open(urllib.request.Request(url, method="HEAD"), timeout=30)
+    except urllib.error.HTTPError as e:
+        if e.code in (301, 302, 307, 308) and e.headers.get("Location"):
+            return e.headers["Location"]
+        raise ApiError(f"video {folder_name}.mp4 not found on the '{REELS_RELEASE}' release (HTTP {e.code}); upload it, see SETUP.md") from None
+    return url
+
+
+def publish_reel(folder: Path, post: dict, extra: dict) -> str:
+    """Creates (or picks back up) the reel's container and returns it once it's ready.
+
+    Video can take Instagram longer than one run's 5 minutes to process, so the
+    container ID is saved in container.json and the next run keeps waiting on it
+    instead of uploading the video again. Containers expire after 24 hours.
+    """
+    saved = folder / "container.json"
+    container = None
+    if saved.exists():
+        info = json.loads(saved.read_text())
+        age_h = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(info["created_at"])).total_seconds() / 3600
+        if age_h < 23:
+            container = info["id"]
+    if not container:
+        params = {"media_type": "REELS", "video_url": release_video_url(folder.name),
+                  "caption": post["caption"], "share_to_feed": "true" if post.get("share_to_feed", True) else "false", **extra}
+        if post.get("cover"):
+            params["cover_url"] = f"{base_url()}/queue/{folder.name}/{post['cover']}"
+        container = api("POST", f"{IG_USER_ID}/media", params)["id"]
+        saved.write_text(json.dumps({"id": container, "created_at": dt.datetime.now(dt.timezone.utc).isoformat()}) + "\n")
+    try:
+        wait_until_ready(container)
+    except NotReadyYet:
+        raise
+    except ApiError:
+        saved.unlink(missing_ok=True)  # that container is dead; start fresh next time
+        raise
+    return container
 
 
 def publish(folder: Path, post: dict) -> dict:
-    urls = [f"{base_url()}/queue/{folder.name}/{name}" for name in post["images"]]
     caption = post["caption"]
     # Optional post.json fields, passed straight through. Carousel children can't take either.
     extra = {}
     if post.get("is_ai_generated"):
         extra["is_ai_generated"] = "true"
+    if post.get("reel"):
+        container = publish_reel(folder, post, extra)
+        media_id = api("POST", f"{IG_USER_ID}/media_publish", {"creation_id": container})["id"]
+        (folder / "container.json").unlink(missing_ok=True)
+        return {"media_id": media_id, "permalink": permalink_of(media_id)}
+    urls = [f"{base_url()}/queue/{folder.name}/{name}" for name in post["images"]]
     if len(urls) == 1:
         if post.get("alt_text"):
             extra["alt_text"] = post["alt_text"]
@@ -150,12 +212,14 @@ def publish(folder: Path, post: dict) -> dict:
         })["id"]
     wait_until_ready(container)
     media_id = api("POST", f"{IG_USER_ID}/media_publish", {"creation_id": container})["id"]
-    permalink = ""
+    return {"media_id": media_id, "permalink": permalink_of(media_id)}
+
+
+def permalink_of(media_id: str) -> str:
     try:
-        permalink = api("GET", media_id, {"fields": "permalink"}).get("permalink", "")
+        return api("GET", media_id, {"fields": "permalink"}).get("permalink", "")
     except ApiError:
-        pass
-    return {"media_id": media_id, "permalink": permalink}
+        return ""
 
 
 def write_result(folder: Path, result: dict) -> None:
@@ -211,10 +275,14 @@ def main() -> int:
                     write_result(folder, {"status": "missed", "checked_at": now.isoformat()})
                 continue
         if args.dry_run:
-            print(f"[dry-run] would publish {folder.name}: {len(post['images'])} image(s)")
+            what = "a reel" if post.get("reel") else f"{len(post['images'])} image(s)"
+            print(f"[dry-run] would publish {folder.name}: {what}")
             continue
         try:
             res = publish(folder, post)
+        except NotReadyYet:
+            print(f"[processing] {folder.name}: Instagram is still processing the video; will check again next run")
+            continue
         except ApiError as e:
             failures += 1
             if e.permanent:

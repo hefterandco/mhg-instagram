@@ -2,3 +2,6 @@
 __pycache__/
 node_modules/
 .render-*.html
+# Reel videos go on the "reels" GitHub Release, not in the repo (see SETUP.md).
+queue/**/*.mp4
+queue/**/*.mov
