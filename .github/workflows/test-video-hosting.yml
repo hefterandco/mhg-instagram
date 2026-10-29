@@ -1,0 +1,45 @@
+name: Test video hosting
+
+# One-off test: can Instagram download a reel from GitHub? Tries the raw file URL
+# and a temporary GitHub Release. Never publishes anything. Run by hand.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write  # to create and delete the temporary test release
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: video-hosting-test
+      FILE: tools/video-test/reel-test.mp4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Upload the test reel to a temporary release
+        run: |
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" "$FILE" --prerelease --target "$GITHUB_SHA" \
+            --title "Video hosting test (temporary, deleted automatically)" --notes "Created by the Test video hosting workflow."
+
+      - name: Ask Instagram to fetch it from each host
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+        run: |
+          RAW="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$GITHUB_SHA/$FILE"
+          REL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$(basename "$FILE")"
+          # Where the release link redirects: a signed link that works for about an hour.
+          SIGNED=$(curl -sI "$REL" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2}')
+          python poster/test_video_hosting.py "raw.githubusercontent.com=$RAW" "Release link (redirects)=$REL" "Release signed link (direct)=$SIGNED"
+
+      - name: Delete the temporary release
+        if: always()
+        run: gh release delete "$TAG" --yes --cleanup-tag || true
