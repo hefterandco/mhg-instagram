@@ -103,6 +103,57 @@ def test_broll_ignores_company_name_and_matches_hyphenated_phrases():
     assert [p["said"] for p in picked] == ["to-do list."]
 
 
+def test_local_broll_matches_how_people_name_files():
+    import tempfile
+    d = Path(tempfile.mkdtemp())
+    (d / "snow").mkdir()
+    for n in ["gutter.mp4", "Leaves 2.MOV", "snow/IMG_4821.MOV", "colonial-house.mp4"]:
+        (d / n).write_bytes(b"")
+    f = broll._Finder(str(d))
+    t = {x["search"]: x for x in broll.load_topics()}
+    def find(said, search):
+        return broll._local_match({"said": said, "search": search, "keywords": t[search]["say"]}, f.local, set())
+    assert find("gutters", "cleaning house gutters").name == "gutter.mp4"
+    assert find("leaves", "raking autumn leaves yard").name == "Leaves 2.MOV"
+    assert find("plowing", "snow plow driveway").name == "IMG_4821.MOV"
+    assert find("thermostat", "adjusting home thermostat") is None  # "home" alone isn't a match
+    f.fill({"said": "thermostat", "search": "adjusting home thermostat", "seconds": 2.4})
+    assert any("thermostat" in w for w in f.report())
+
+
+def test_pixabay_fallback_picks_house_footage_over_people(monkeypatch=None):
+    import os, tempfile
+    os.environ["FACEEDIT_CACHE"] = tempfile.mkdtemp()
+    os.environ["PIXABAY_API_KEY"] = "test-key"
+    calls = []
+    def fake_get(lib, base, params, secret_params=None, headers=None):
+        calls.append(params["q"])
+        if params["q"] != "gutters":
+            return {"hits": []}
+        vid = lambda n, size: {"url": f"https://cdn.pixabay.com/{n}.mp4", "width": 3840, "height": 2160, "size": size}
+        return {"hits": [
+            {"id": 1, "duration": 9, "tags": "woman, smiling, house", "pageURL": "p1", "user": "a",
+             "videos": {"large": vid("1L", 50_000_000), "medium": vid("1M", 9_000_000)}},
+            {"id": 2, "duration": 9, "tags": "gutter, roof, rain", "pageURL": "p2", "user": "b",
+             "videos": {"large": vid("2L", 120_000_000), "medium": vid("2M", 9_000_000)}},
+            {"id": 3, "duration": 2, "tags": "gutter", "pageURL": "p3", "user": "c",
+             "videos": {"large": vid("3L", 1), "medium": vid("3M", 1)}},
+        ]}
+    real = broll._cached_get
+    broll._cached_get = fake_get
+    try:
+        f = broll._Finder("")
+        m = {"said": "gutters", "search": "cleaning house gutters", "seconds": 2.4}
+        assert f.fill(m)
+    finally:
+        broll._cached_get = real
+        del os.environ["PIXABAY_API_KEY"]
+    assert calls == ["cleaning house gutters", "cleaning gutters", "gutters"]  # shorter queries as fallback
+    assert m["source"] == "pixabay" and m["stock_id"] == 2          # no people, long enough
+    assert m["download"].endswith("2M.mp4")                         # 4K over 80 MB -> 1080p
+    assert "test-key" not in str(m)
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
