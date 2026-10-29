@@ -61,6 +61,34 @@ Re-rendering a plan doesn't re-transcribe, so changes are quick.
 | `--model medium.en` | more accurate transcription, slower |
 | `--topics mytopics.toml` | extra keyword → B-roll mappings for this video |
 
+## Send it to Instagram
+
+Add `--queue-at` with the posting time (Connecticut time) and the finished video goes straight into the auto-poster:
+
+```bash
+python3 -m faceedit edit ~/Movies/gutters.mov --title "Your gutters are full. Now what?" --queue-at "2026-11-05 09:00"
+```
+
+Or queue a video that's already finished (from faceedit or edited anywhere else):
+
+```bash
+python3 -m faceedit queue ~/Movies/gutters.edit.mp4 --at "2026-11-05 09:00"
+```
+
+Either way it:
+1. Uploads the video to the `reels` GitHub Release as `2026-11-05-gutters.mp4`, not into the repo.
+2. Creates `queue/2026-11-05-gutters/post.json` with the time and the caption **`WRITE THE CAPTION HERE`**.
+
+Then open that `post.json`, replace the placeholder with your caption, and commit and push. **Until the placeholder is replaced, the post is a draft and never publishes**, even if its time passes.
+
+| Flag | Does |
+|---|---|
+| `--slug gutter-tips` | folder and file name, instead of the video's file name |
+| `--cover thumb.jpg` | JPEG cover image instead of the first frame |
+| `--replace` | upload over an existing video and folder with the same name |
+
+It needs the `reels` release to exist (SETUP.md › Reels) and the GitHub login your Mac saved when you last pushed. Or put a token in `.env` as `GITHUB_TOKEN`. The `queue` command runs without Whisper, OpenCV or ffmpeg installed.
+
 ## Tuning
 
 - `faceedit/faceedit.toml` holds caption size, colors and position, cut tightness, B-roll frequency, the title look and the end card text.

@@ -94,7 +94,9 @@ A reel is a queue folder like any other, but the video doesn't go in the folder.
 
 **One time:** repo › **Releases › Draft a new release** › tag `reels` › title `Reels` › tick **Set as a pre-release** › **Publish release**.
 
-**For each reel:**
+**If the video comes from faceedit:** `python3 -m faceedit queue video.mp4 --at "2026-11-05 09:00"` does steps 1–3 for you and leaves the caption as a placeholder for you to write (see faceedit/README.md).
+
+**For each reel, by hand:**
 1. Name the video after its folder, e.g. `2026-11-05-gutter-tips.mp4`. It must be MP4 or MOV, H.264, 9:16, 3 seconds to 15 minutes, and under 300 MB. Phone exports are normally fine.
 2. Repo › **Releases › Reels › Edit** (the pencil) › drag the video into the box › **Update release**.
 3. Make the queue folder and push:

@@ -28,7 +28,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from queue_check import QUEUE_DIR, REELS_RELEASE, check_post, load_post, reel_release_url  # noqa: E402
+from queue_check import QUEUE_DIR, REELS_RELEASE, check_post, is_draft, load_post, reel_release_url  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Config. Secrets are never hard-coded: fill them in as GitHub secrets
@@ -256,6 +256,9 @@ def main() -> int:
     failures = 0
     for folder in folders:
         if (folder / "result.json").exists() and not args.force:
+            continue
+        if is_draft(folder):
+            print(f"[draft] {folder.name}: caption not written yet, skipping")
             continue
         problems = check_post(folder)
         if problems:

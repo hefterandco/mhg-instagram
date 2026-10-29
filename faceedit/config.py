@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import tomllib
 from pathlib import Path
 
 PKG = Path(__file__).resolve().parent
@@ -27,6 +26,7 @@ def load_dotenv() -> None:
 
 
 def load_settings(path: str | Path | None = None) -> dict:
+    import tomllib  # Python 3.11+, needed only for editing
     with open(path or PKG / "faceedit.toml", "rb") as f:
         return tomllib.load(f)
 

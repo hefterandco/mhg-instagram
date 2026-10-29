@@ -7,6 +7,11 @@
       transcribe, pick cuts, framing and B-roll -> clip.plan.json (edit it if you like)
   python -m faceedit render clip.plan.json
       build the video from the (edited) plan -> clip.edit.mp4
+
+  python -m faceedit queue clip.edit.mp4 --at "2026-11-05 09:00"
+      upload to the "reels" release and create queue/2026-11-05-clip/ (caption left for you)
+  python -m faceedit edit clip.mov --title "..." --queue-at "2026-11-05 09:00"
+      edit, then queue in one go
 """
 from __future__ import annotations
 
@@ -15,14 +20,15 @@ import json
 import sys
 from pathlib import Path
 
-from . import broll, cuts, reframe
 from .config import load_dotenv, load_settings
-from .media import probe
-from .render import render
-from .transcribe import load_words, transcribe
+from .queue import queue_reel
 
 
 def make_plan(src: Path, args, settings: dict) -> dict:
+    from . import broll, cuts, reframe
+    from .media import probe
+    from .transcribe import load_words, transcribe
+
     p = probe(src)
     cc, oc = settings["cuts"], settings["output"]
     if args.transcript:
@@ -92,16 +98,36 @@ def main(argv: list[str] | None = None) -> int:
             sp.add_argument(f"--no-{flag}", action="store_true")
         sp.add_argument("--settings", help="alternate settings file")
 
+    def queue_opts(sp, flag):
+        sp.add_argument(flag, metavar='"YYYY-MM-DD HH:MM"', help="when to post, Connecticut time")
+        sp.add_argument("--slug", help="short name for the queue folder (default: from the file name)")
+        sp.add_argument("--cover", type=Path, help="optional JPEG cover image")
+        sp.add_argument("--replace", action="store_true", help="overwrite an existing upload and folder")
+
     plan_opts(sp_plan := sub.add_parser("plan", help="make an editable plan"))
     plan_opts(sp_edit := sub.add_parser("edit", help="plan and render in one step"))
     sp_edit.add_argument("-o", "--out", type=Path)
     sp_edit.add_argument("--keep-temp", action="store_true")
+    queue_opts(sp_edit, "--queue-at")
     sp_r = sub.add_parser("render", help="render a plan")
     sp_r.add_argument("plan", type=Path)
     sp_r.add_argument("-o", "--out", type=Path)
     sp_r.add_argument("--settings")
     sp_r.add_argument("--keep-temp", action="store_true")
+    queue_opts(sp_r, "--queue-at")
+    sp_q = sub.add_parser("queue", help="upload a finished Reel and create its queue folder")
+    sp_q.add_argument("video", type=Path)
+    queue_opts(sp_q, "--at")
     args = ap.parse_args(argv)
+
+    if args.cmd == "queue":
+        if not args.at:
+            raise SystemExit('Say when to post: --at "2026-11-05 09:00"')
+        queue_reel(args.video, args.at, args.slug, args.cover, args.replace)
+        return 0
+
+    # Imported here so `queue` works without the editing tools (Whisper, OpenCV, ffmpeg) installed.
+    from .render import render
 
     settings = load_settings(args.settings)
     if args.cmd in ("plan", "edit"):
@@ -119,6 +145,8 @@ def main(argv: list[str] | None = None) -> int:
         out = args.out or Path(plan["source"]).with_name(Path(plan["source"]).stem + ".edit.mp4")
     done = render(plan, settings, out, keep_temp=args.keep_temp)
     print(f"Done: {done}")
+    if getattr(args, "queue_at", None):
+        queue_reel(Path(done), args.queue_at, args.slug, args.cover, args.replace)
     return 0
 
 
