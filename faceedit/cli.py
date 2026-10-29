@@ -105,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         sp.add_argument("--model", help="Whisper model, e.g. small.en, medium.en")
         sp.add_argument("--transcript", help="reuse a saved transcript or plan instead of Whisper")
         sp.add_argument("--topics", help="extra B-roll topics file (same format as broll_topics.toml)")
-        sp.add_argument("--broll-dir", help="folder of your own clips to use before Pexels")
+        sp.add_argument("--broll-dir", help="folder of your own clips to use before stock")
         for flag in ("cuts", "reframe", "punch", "broll", "captions", "endcard"):
             sp.add_argument(f"--no-{flag}", action="store_true")
         sp.add_argument("--settings", help="alternate settings file")

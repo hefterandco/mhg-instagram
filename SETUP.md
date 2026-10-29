@@ -11,6 +11,8 @@ One-time, about 30 minutes. Everything here is free.
 | `GH_SECRETS_TOKEN` | Same place, **Secrets** | **Yes** | GitHub token that lets the weekly refresh save the new Instagram token. | Step 6 |
 | `IG_GRAPH_VERSION` | Same page, **Variables** tab | No | Optional. The poster uses API version `v26.0` unless you set this, e.g. to try a newer version. | — |
 | `MAX_LATE_HOURS` | Same page, **Variables** tab | No | Optional, default `6`. A post this many hours late is skipped and marked "missed" instead of posted. | — |
+| `PIXABAY_API_KEY` | `.env` on your Mac (faceedit only, not GitHub) | **Yes** | Free key for stock B-roll when your own clips don't match. Blank = own clips only. | pixabay.com/api/docs while logged in ([faceedit/README.md](faceedit/README.md)) |
+| `PEXELS_API_KEY` | `.env` on your Mac (faceedit only) | **Yes** | Optional second stock library. Pexels has paused new keys; leave blank. | — |
 
 Nothing else. No paid services. Meta's app secret is **not** needed for this.
 
