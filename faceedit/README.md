@@ -31,7 +31,7 @@ Run faceedit from the repo folder with `.venv/bin/python -m faceedit …`, as in
 
 Why `ffmpeg-full`: Homebrew's standard `ffmpeg` no longer includes libass, which draws the captions (the `ass` filter). faceedit needs ffmpeg 7 or newer.
 
-**B-roll:** put your own clips in `~/Movies/MHG-broll`, named by what's in them, e.g. `gutter-cleaning-westport.mp4`. When you say a matching word, faceedit cuts to that clip. That folder is set as `local_dir` in `faceedit.toml`.
+**B-roll:** put your own clips in `~/Movies/MHG-broll`, named by what's in them: `gutter.mp4`, `Leaves 2.mov`, `dryer-vent.mp4`, or keep the phone's `IMG_4821.MOV` name inside a folder like `MHG-broll/snow/`. Singular or plural doesn't matter. When you say a matching word (see `broll_topics.toml`), faceedit cuts to that clip. If nothing matches, the edit prints which words had no clip so you know what to film. That folder is set as `local_dir` in `faceedit.toml`.
 
 **PEXELS_API_KEY** (optional, skipped for now): Pexels has paused new API keys. If they reopen, get a free key at https://www.pexels.com/api/ and paste it into `.env` to add stock B-roll when your own clips don't match. Without it everything works; edits just print a note that no stock B-roll was pulled.
 

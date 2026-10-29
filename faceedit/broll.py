@@ -1,11 +1,12 @@
 """Picks B-roll moments from what you say, and fetches matching clips.
 
-Sources, in order: your own clips folder (if [broll] local_dir is set), then
-Pexels free stock video (needs the free PEXELS_API_KEY; see .env.example).
+Sources, in order: your own clips folder ([broll] local_dir, ~/Movies/MHG-broll),
+matched by file name, then Pexels stock video if PEXELS_API_KEY is set.
 """
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 import urllib.error
 import urllib.parse
@@ -76,22 +77,24 @@ def choose(words: list[dict], segments: list[dict], topics: list[dict], cfg: dic
             continue
         tried.add(t["search"])
         m = {"_t": at, "at": round(spoken[i]["s"] - 0.1, 3), "seconds": dur,
-             "said": said, "search": t["search"]}
+             "said": said, "search": t["search"], "keywords": t["say"]}
         if finder.fill(m):
             picked.append(m)
     picked.sort(key=lambda p: p["_t"])
     for p in picked:
         p.pop("_t")
-    return picked, list(dict.fromkeys(finder.warnings))
+    return picked, finder.report()
 
 
 def fill_missing(moments: list[dict], local_dir: str = "") -> list[str]:
     """Finds clips for hand-added plan entries that only have a "search"."""
+    missing = [m for m in moments if not (m.get("file") or m.get("download"))]
+    if not missing:
+        return []
     finder = _Finder(local_dir)
-    for m in moments:
-        if not (m.get("file") or m.get("download")):
-            finder.fill(m)
-    return list(dict.fromkeys(finder.warnings))
+    for m in missing:
+        finder.fill(m)
+    return finder.report()
 
 
 # ---------------------------------------------------------------- sources
@@ -99,20 +102,28 @@ def fill_missing(moments: list[dict], local_dir: str = "") -> list[str]:
 class _Finder:
     def __init__(self, local_dir: str = ""):
         self.key = secret("PEXELS_API_KEY")
-        self.local = [p for p in Path(local_dir).expanduser().rglob("*")
-                      if p.suffix.lower() in VIDEO_EXT] if local_dir else []
+        self.label = local_dir
+        self.local: list[Path] = []
         self.used: set = set()
         self.warnings: list[str] = []
+        self.misses: list[str] = []
+        folder = Path(local_dir).expanduser() if local_dir else None
+        if folder and not folder.is_dir():
+            self.warnings.append(f"B-roll folder {local_dir} doesn't exist. Create it and add clips.")
+        elif folder:
+            self.local = [p for p in folder.rglob("*")
+                          if p.suffix.lower() in VIDEO_EXT and not p.name.startswith(".")]
+            if not self.local:
+                self.warnings.append(f"B-roll folder {local_dir} has no .mp4/.mov clips in it.")
 
     def fill(self, m: dict) -> bool:
-        hit = _local_match(m["search"], self.local, self.used)
+        hit = _local_match(m, self.local, self.used)
         if hit:
             m.update(source="local", file=str(hit))
             self.used.add(str(hit))
             return True
         if not self.key:
-            self.warnings.append(f"No clip in your B-roll folder for \"{m['search']}\" (said: \"{m['said']}\"). "
-                                 f"Add one with those words in its file name.")
+            self.misses.append(m.get("said") or m["search"])
             return False
         try:
             choice = _pexels_search(m["search"], m["seconds"], self.key, self.used)
@@ -126,17 +137,56 @@ class _Finder:
         self.used.add(choice["pexels_id"])
         return True
 
+    def report(self) -> list[str]:
+        out = list(self.warnings)
+        if self.misses:
+            said = [" ".join(norm(t) for t in x.split()) for x in dict.fromkeys(self.misses)]
+            example = "-".join(_stem(t) for t in said[0].split())
+            out.append(f"No clip in {self.label or 'your B-roll folder'} for: {', '.join(said)}. "
+                       f"Add clips named after what's in them, e.g. {example}-1.mp4 "
+                       f"(no Pexels key, so there's no stock fallback).")
+        return list(dict.fromkeys(out))
 
-def _local_match(search: str, files: list[Path], used: set) -> Path | None:
-    words = set(search.lower().split())
-    best, score = None, 0
+
+# Filename words that say nothing about what's in the clip.
+_NOISE = {"img", "mov", "mp4", "clip", "video", "broll", "roll", "the", "a", "and", "of", "my",
+          "final", "edit", "copy", "new", "vid", "pxl", "dji", "gopro", "trim"}
+# Search words too generic to pick a clip by themselves.
+_GENERIC = {"house", "home", "yard", "winter", "summer", "spring", "autumn", "fall", "new", "england"}
+
+
+def _stem(w: str) -> str:
+    if len(w) > 4 and w.endswith("ves"):
+        return w[:-3] + "f"          # leaves -> leaf
+    for suf in ("ing", "es", "s"):
+        if len(w) > len(suf) + 2 and w.endswith(suf):
+            return w[: -len(suf)]    # gutters -> gutter, plowing -> plow
+    return w
+
+
+def _terms(text: str) -> set[str]:
+    toks = (norm(t) for t in re.split(r"[^A-Za-z0-9]+", text))
+    return {_stem(t) for t in toks if t and not t.isdigit() and t not in _NOISE}
+
+
+def _local_match(m: dict, files: list[Path], used: set) -> Path | None:
+    """Picks your clip whose file name (or subfolder name) matches what you said.
+
+    "gutter.mp4", "Gutters 2.mov" and "gutters/IMG_4821.MOV" all match when you
+    say "gutters". The topic's other keywords and its search words count too, but
+    a lone generic word like "house" is not enough to call it a match.
+    """
+    say = _terms(" ".join(m.get("keywords", [])) + " " + m.get("said", ""))
+    search = _terms(m["search"])
+    specific, generic = search - _GENERIC - say, search & _GENERIC
+    best, best_score = None, 0.0
     for f in files:
         if str(f) in used:
             continue
-        name = set(norm(t) for t in f.stem.replace("_", " ").replace("-", " ").split())
-        s = len(words & name)
-        if s > score:
-            best, score = f, s
+        name = _terms(f.stem) | _terms(f.parent.name)
+        score = 3 * len(say & name) + len(specific & name) + 0.4 * len(generic & name)
+        if score >= 1 and score > best_score:
+            best, best_score = f, score
     return best
 
 
