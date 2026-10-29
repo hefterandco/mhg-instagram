@@ -122,7 +122,7 @@ queue/
 Stories run on their own rotation from the `stories/` folder. See [stories/README.md](stories/README.md).
 - Drop 1080×1920 JPEGs in `stories/` and push.
 - The times are in `stories/config.json`, Connecticut time. The default is 8:30am, 12:30pm and 6:30pm.
-- An image isn't repeated within 7 days (also in `config.json`), so keep about 21 images there to fill every slot.
+- An image isn't repeated within 3 days (also in `config.json`), so keep about 9 images there to fill every slot.
 - If Instagram flags the account, Stories pause themselves (a `stories/PAUSED` file says why). Delete that file to restart.
 
 ## When something goes wrong
