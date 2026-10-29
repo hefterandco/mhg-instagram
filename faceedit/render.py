@@ -101,8 +101,8 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
         g.append(f"[{v}][b{j}]overlay=eof_action=pass:enable='between(t,{T:.3f},{T + dur:.3f})'[vb{j}]")
         v = f"vb{j}"
         n_in += 1
-        if m.get("source") == "pexels":
-            credits.append(f"{m['search']}: video by {m.get('by') or 'unknown'} on Pexels {m.get('page', '')}")
+        if m.get("source") in ("pexels", "pixabay"):
+            credits.append(f"{m['search']}: video by {m.get('by') or 'unknown'} on {m['source'].title()} {m.get('page', '')}")
 
     # 3. Hook title at the top for the first few seconds.
     if plan.get("title"):
@@ -165,7 +165,7 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
 
     if credits:
         out.with_suffix(".credits.txt").write_text(
-            "B-roll from Pexels (free to use; credit appreciated, e.g. 'B-roll: Pexels'):\n"
+            "Stock B-roll (free to use, no credit required; credit appreciated):\n"
             + "\n".join(credits) + "\n")
     if keep_temp:
         print(f"Temp files kept in {tmp}")
