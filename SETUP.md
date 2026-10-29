@@ -88,6 +88,43 @@ Two optional extras:
 - After posting, it writes `result.json` (with the post link) next to the post, so it never posts twice. If Instagram rejects a post for a reason retrying won't fix (bad image, caption too long, account restricted, spam flag), it writes `result.json` with `"status": "failed"` and the reason instead. Fix the problem, delete that `result.json` and push to try again.
 - Every push runs **Check queue**, which catches non-JPEG images, wrong shapes, missing time zones and long captions before posting day.
 
+## Reels
+
+A reel is a queue folder like any other, but the video doesn't go in the folder. Videos are too big for the repo (it would grow by gigabytes a year), so they go on a GitHub Release named `reels`, which has no size or download limits.
+
+**One time:** repo › **Releases › Draft a new release** › tag `reels` › title `Reels` › tick **Set as a pre-release** › **Publish release**.
+
+**For each reel:**
+1. Name the video after its folder, e.g. `2026-11-05-gutter-tips.mp4`. It must be MP4 or MOV, H.264, 9:16, 3 seconds to 15 minutes, and under 300 MB. Phone exports are normally fine.
+2. Repo › **Releases › Reels › Edit** (the pencil) › drag the video into the box › **Update release**.
+3. Make the queue folder and push:
+```
+queue/
+  2026-11-05-gutter-tips/
+    post.json
+    cover.jpg        ← optional cover image (JPEG); otherwise Instagram uses the first frame
+```
+```json
+{
+  "publish_at": "2026-11-05T09:00:00-05:00",
+  "caption": "Caption text and #hashtags",
+  "reel": true,
+  "cover": "cover.jpg",
+  "share_to_feed": true
+}
+```
+- `cover` and `share_to_feed` are optional. `share_to_feed: false` keeps the reel in the Reels tab only.
+- Upload the video **before** pushing the folder. Check queue fails if the video isn't on the release yet.
+- Instagram can take a few minutes to process a video. If it isn't ready, the poster checks again on the next run (the folder gets a `container.json` meanwhile) instead of uploading again.
+
+## Stories
+
+Stories run on their own rotation from the `stories/` folder. See [stories/README.md](stories/README.md).
+- Drop 1080×1920 JPEGs in `stories/` and push.
+- The times are in `stories/config.json`, Connecticut time. The default is 8:30am, 12:30pm and 6:30pm.
+- An image isn't repeated within 7 days (also in `config.json`), so keep about 21 images there to fill every slot.
+- If Instagram flags the account, Stories pause themselves (a `stories/PAUSED` file says why). Delete that file to restart.
+
 ## When something goes wrong
 - GitHub emails you when a run fails. The log says why in plain words.
 - "token is expired or invalid": do step 4 again and replace `IG_ACCESS_TOKEN`.
