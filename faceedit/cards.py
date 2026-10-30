@@ -55,6 +55,30 @@ def title_png(text: str, cfg: dict, width: int, height: int, out: Path) -> Path:
     return out
 
 
+def _icon(kind: str, size: int, color: str) -> Image.Image:
+    """A small line icon (web, email, phone), drawn at 4x and scaled down for smooth edges."""
+    s = size * 4
+    im = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    w = max(4, s // 11)
+    m = w  # margin so strokes aren't clipped
+    if kind == "web":  # a globe: outline, equator, one meridian, two parallels
+        d.ellipse([m, m, s - m, s - m], outline=color, width=w)
+        d.ellipse([s * 0.3, m, s * 0.7, s - m], outline=color, width=w)
+        d.line([m, s / 2, s - m, s / 2], fill=color, width=w)
+        for yy in (s * 0.28, s * 0.72):
+            half = ((s / 2 - m) ** 2 - (yy - s / 2) ** 2) ** 0.5
+            d.line([s / 2 - half, yy, s / 2 + half, yy], fill=color, width=w)
+    elif kind == "email":  # an envelope
+        top, bot = s * 0.2, s * 0.8
+        d.rounded_rectangle([m, top, s - m, bot], radius=s // 12, outline=color, width=w)
+        d.line([m + w, top + w, s / 2, s * 0.52, s - m - w, top + w], fill=color, width=w, joint="curve")
+    elif kind == "phone":  # a mobile phone
+        d.rounded_rectangle([s * 0.24, m, s * 0.76, s - m], radius=s // 9, outline=color, width=w)
+        d.line([s * 0.42, s - m - s * 0.12, s * 0.58, s - m - s * 0.12], fill=color, width=w)
+    return im.resize((size, size), Image.LANCZOS)
+
+
 def endcard_png(cfg: dict, width: int, height: int, out: Path) -> Path:
     img = Image.new("RGB", (width, height), CREAM)
     d = ImageDraw.Draw(img)
@@ -74,10 +98,20 @@ def endcard_png(cfg: dict, width: int, height: int, out: Path) -> Path:
         d.text(((width - tw) / 2, y), text, font=font, fill=color)
         y += sum(font.getmetrics()) + gap
     d.rectangle([width // 2 - 60, y - 30, width // 2 + 60, y - 26], fill="#E8DFCD")
+    # Contact lines: ["web", "myhouseguardian.com"] gets an icon; a plain string doesn't.
     small = _font("Nunito Sans SemiBold", 52)
-    for line in cfg["lines"]:
-        tw = d.textlength(line, font=small)
-        d.text(((width - tw) / 2, y), line, font=small, fill=STONE)
-        y += sum(small.getmetrics()) + 14
+    lines = [(ln[0], ln[1]) if isinstance(ln, list) else (None, ln) for ln in cfg["lines"]]
+    icon_px, gap = 50, 26
+    has_icons = any(kind for kind, _ in lines)
+    block = max(d.textlength(t, font=small) for _, t in lines) + (icon_px + gap if has_icons else 0)
+    x0 = (width - block) / 2
+    line_h = sum(small.getmetrics()) + 18
+    for kind, text in lines:
+        tx = x0 + (icon_px + gap if has_icons else 0)
+        if kind:
+            icon = _icon(kind, icon_px, CLAY)
+            img.paste(icon, (int(x0), int(y + (line_h - 18 - icon_px) / 2 + 4)), icon)
+        d.text((tx, y), text, font=small, fill=STONE)
+        y += line_h
     img.save(out)
     return out

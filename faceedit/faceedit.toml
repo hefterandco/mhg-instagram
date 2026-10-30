@@ -100,7 +100,8 @@ avoid_tags = [
 enabled = true
 seconds = 2.5
 tagline = "Your House, Our Problems"
-lines = ["@myhouseguardian", "myhouseguardian.com", "andrew@myhouseguardian.com", "201-280-2909"]
+# Each line: [icon, text]. Icons: web, email, phone. A plain "text" line has no icon.
+lines = [["web", "myhouseguardian.com"], ["email", "andrew@myhouseguardian.com"], ["phone", "201-280-2909"]]
 
 [watermark]
 enabled = true
