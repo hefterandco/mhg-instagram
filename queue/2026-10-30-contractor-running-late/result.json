@@ -4,8 +4,9 @@
   "media_id": "17897751327420958",
   "permalink": "https://www.instagram.com/reel/DfIjR9uFWoT/",
   "facebook": {
-    "status": "failed",
-    "checked_at": "2026-10-30T22:12:37.509175+00:00",
-    "reason": "Facebook POST 1419803117877096/video_reels: (#200) Subject does not have permission to post videos on this target"
+    "status": "published",
+    "video_id": "1149017048065050",
+    "permalink": "https://www.facebook.com/reel/1149017048065050/",
+    "published_at": "2026-10-30T22:54:15.758426+00:00"
   }
 }
