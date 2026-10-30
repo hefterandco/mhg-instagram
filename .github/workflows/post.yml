@@ -40,6 +40,9 @@ jobs:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
           MAX_LATE_HOURS: ${{ vars.MAX_LATE_HOURS || '6' }}
+          # Facebook Page cross-posting stays off until both are set. SETUP.md, "Facebook Page".
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
           EVENT: ${{ github.event_name }}
           DRY_RUN: ${{ inputs.dry_run }}
           FORCE: ${{ inputs.force }}

@@ -70,6 +70,8 @@ Single images, single videos, Reels, Stories and carousels ([Publish Content](ht
 
 ## 2. Cross-posting to the My House Guardian Facebook Page
 
+**Built Oct 30, 2026** in `poster/facebook.py`; setup in SETUP.md, "Facebook Page".
+
 **The current Instagram Login token cannot post to a Facebook Page.** Pages use the Pages API on `graph.facebook.com` with a **Page access token** obtained through **Facebook Login** ([Pages API: Posts](https://developers.facebook.com/docs/pages-api/posts)). It's a separate login, token and permission set.
 
 ### What it needs
@@ -88,7 +90,12 @@ Single images, single videos, Reels, Stories and carousels ([Publish Content](ht
   - Unpublished uploads are deleted after about 24 hours.
   - Facebook accepts JPEG, BMP, PNG, GIF and TIFF up to 10 MB, so our JPEGs work as-is.
 - **Native scheduling:** `published=false` plus `scheduled_publish_time`, between 10 minutes and 30 days ahead ([Pages API: Posts](https://developers.facebook.com/docs/pages-api/posts)). We don't need this, because our own scheduler already handles timing.
-- **Video and Reels to Pages:** handled by a separate Video API that I didn't research.
+- **Reels to Pages** ([Reels Publishing](https://developers.facebook.com/docs/video-api/guides/reels-publishing), checked Oct 30, 2026):
+  1. `POST /{page-id}/video_reels` with `upload_phase=start` returns `video_id`.
+  2. `POST https://rupload.facebook.com/video-upload/v26.0/{video-id}` with headers `Authorization: OAuth <page token>`, `offset: 0`, `file_size` and the video bytes. (A `file_url` header also works, but the poster sends the bytes so it doesn't depend on Facebook fetching GitHub's short-lived signed link.)
+  3. `GET /{video-id}?fields=status` until `video_status` is ready.
+  4. `POST /{page-id}/video_reels` with `upload_phase=finish`, `video_id`, `video_state=PUBLISHED` and the caption as `description`.
+  - Specs: 9:16, 3 to 90 seconds, H.264, AAC. Limit: 30 API posts per Page per 24 hours.
 - An app can only update a Page post that the same app made.
 
 ### Zero-code alternative ⚠️ UNCONFIRMED

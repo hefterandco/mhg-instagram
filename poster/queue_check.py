@@ -155,6 +155,8 @@ def check_post(folder: Path) -> list[str]:
 
     if not isinstance(post.get("is_ai_generated", False), bool):
         problems.append("is_ai_generated must be true or false")
+    if not isinstance(post.get("facebook", True), bool):
+        problems.append("facebook must be true or false")
     if post.get("reel"):
         return problems + check_reel(folder, post)
 

@@ -11,6 +11,8 @@ One-time, about 30 minutes. Everything here is free.
 | `GH_SECRETS_TOKEN` | Same place, **Secrets** | **Yes** | GitHub token that lets the weekly refresh save the new Instagram token. | Step 6 |
 | `IG_GRAPH_VERSION` | Same page, **Variables** tab | No | Optional. The poster uses API version `v26.0` unless you set this, e.g. to try a newer version. | — |
 | `MAX_LATE_HOURS` | Same page, **Variables** tab | No | Optional, default `6`. A post this many hours late is skipped and marked "missed" instead of posted. | — |
+| `FB_PAGE_ID` | Same place, **Secrets** | Yes (treat as private) | Optional. Your Facebook Page's ID. With `FB_PAGE_TOKEN`, every post also goes to the Page. | Facebook Page |
+| `FB_PAGE_TOKEN` | Same place, **Secrets** | **Yes** | Optional. A Page token that doesn't expire. | Facebook Page |
 
 Nothing else. No paid services. Meta's app secret is **not** needed for this.
 
@@ -126,6 +128,25 @@ Stories run on their own rotation from the `stories/` folder. See [stories/READM
 - The times are in `stories/config.json`, Connecticut time. The default is 8:30am, 12:30pm and 6:30pm.
 - An image isn't repeated within 3 days (also in `config.json`), so keep about 9 images there to fill every slot.
 - If Instagram flags the account, Stories pause themselves (a `stories/PAUSED` file says why). Delete that file to restart.
+
+## Facebook Page
+
+Optional, about 15 minutes, free. Once it's set up, every post and reel that goes to Instagram also goes to the My House Guardian Facebook Page, with the same caption. Stories stay Instagram-only.
+
+**Pick one way, not both.** If Instagram's own "share to Facebook" setting (Accounts Center, Sharing across profiles) is on, turn it off before adding these secrets, or the Page gets every post twice.
+
+1. In the Meta app from step 3, add the **Facebook Login for Business** product. Don't add Marketing API or anything with "ads" in it.
+2. Open the Graph API Explorer (developers.facebook.com/tools/explorer), pick the app, and choose **Get User Access Token**. Tick only `pages_show_list`, `pages_read_engagement` and `pages_manage_posts`. Log in with the Facebook account that runs the Page, and allow the Page.
+3. Copy that token into the Access Token Debugger (developers.facebook.com/tools/debug/accesstoken), press **Debug**, then **Extend Access Token** at the bottom. Copy the long-lived token it shows.
+4. Back in the Explorer, paste the long-lived token in the token box and run `GET me/accounts`. Find the Page in the result.
+5. Save its `id` as the `FB_PAGE_ID` secret and its `access_token` as `FB_PAGE_TOKEN`.
+6. Check it: paste `FB_PAGE_TOKEN` into the Access Token Debugger. "Expires" should say **Never**.
+
+From the next post on, `result.json` gets a `"facebook"` section with the Page post's link.
+- Add `"facebook": false` to a `post.json` to keep that one post off the Page.
+- A Facebook problem never re-posts to Instagram. Temporary errors retry for up to `MAX_LATE_HOURS`; anything else is marked `"failed"` with the reason. Delete the `"facebook"` section from `result.json` and push to try again.
+- Facebook only takes reels from 3 to 90 seconds. Longer reels still post to Instagram; the Facebook side is marked failed.
+- The Page token stops working if you change your Facebook password or remove the app from the Page. Redo steps 2 to 5.
 
 ## When something goes wrong
 - GitHub emails you when a run fails. The log says why in plain words.

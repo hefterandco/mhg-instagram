@@ -3,7 +3,10 @@
 
 Looks through queue/ for posts whose publish time has arrived, publishes them
 through the Instagram API (Instagram Login, graph.instagram.com), and writes a
-result.json next to each post so it is never posted twice.
+result.json next to each post so it is never posted twice. If the Facebook Page
+is connected (poster/facebook.py), each post then goes to the Page too, tracked
+under "facebook" in the same result.json so a Facebook problem never re-posts
+to Instagram.
 
 Standard library only. Configuration comes from environment variables; see
 SETUP.md for every value and where it comes from.
@@ -28,6 +31,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import facebook as fb  # noqa: E402
 from queue_check import QUEUE_DIR, REELS_RELEASE, check_post, is_draft, load_post, reel_release_url  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -226,6 +230,58 @@ def write_result(folder: Path, result: dict) -> None:
     (folder / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 
 
+def cross_post(folder: Path, post: dict, result: dict, now: dt.datetime, dry_run: bool) -> bool:
+    """Posts an Instagram-published post to the Facebook Page. Returns True if result changed.
+
+    Runs again on later runs while the Facebook side is still processing or hit a
+    temporary error, and gives up after MAX_LATE_HOURS so a stale post never lands late.
+    """
+    done = result.get("facebook", {}).get("status") in ("published", "failed", "skipped")
+    if not fb.enabled() or result.get("status") != "published" or done:
+        return False
+    if post.get("facebook") is False:
+        result["facebook"] = {"status": "skipped"}
+        return True
+    if dry_run:
+        print(f"[dry-run] would cross-post {folder.name} to Facebook")
+        return False
+    fb_state = result.get("facebook", {})
+    late_h = (now - dt.datetime.fromisoformat(result["published_at"])).total_seconds() / 3600
+    if late_h > MAX_LATE_HOURS:
+        if not fb_state:
+            return False  # posted before the Page was connected; leave it alone
+        result["facebook"] = {"status": "failed", "checked_at": now.isoformat(),
+                              "reason": f"gave up {late_h:.1f}h after the Instagram post. Last error: {fb_state.get('reason', 'none')}"}
+        print(f"[facebook failed] {folder.name}: gave up")
+        return True
+    try:
+        if post.get("reel"):
+            video_id = fb_state.get("video_id")
+            if not video_id:
+                with urllib.request.urlopen(release_video_url(folder.name), timeout=300) as r:
+                    video_id = fb.start_reel(r.read())
+            try:
+                res = fb.finish_reel(video_id, post["caption"])
+            except fb.NotReadyYet:
+                result["facebook"] = {"status": "processing", "video_id": video_id, "checked_at": now.isoformat()}
+                print(f"[facebook processing] {folder.name}: will finish next run")
+                return True
+        else:
+            urls = [f"{base_url()}/queue/{folder.name}/{name}" for name in post["images"]]
+            res = fb.post_photos(urls, post["caption"])
+    except (fb.FacebookError, ApiError, urllib.error.URLError) as e:
+        permanent = isinstance(e, fb.FacebookError) and e.permanent
+        result["facebook"] = {"status": "failed" if permanent else "error", "checked_at": now.isoformat(), "reason": str(e)}
+        if permanent:
+            print(f"[facebook failed] {folder.name}: {e} -- not retrying; delete the \"facebook\" entry in result.json to try again")
+        else:
+            print(f"[facebook error] {folder.name}: {e} -- will retry next run")
+        return True
+    result["facebook"] = {**res, "published_at": now.isoformat()}
+    print(f"[facebook published] {folder.name} {res.get('permalink', '')}")
+    return True
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
@@ -256,6 +312,9 @@ def main() -> int:
     failures = 0
     for folder in folders:
         if (folder / "result.json").exists() and not args.force:
+            result = json.loads((folder / "result.json").read_text())
+            if cross_post(folder, load_post(folder), result, now, args.dry_run):
+                write_result(folder, result)
             continue
         if is_draft(folder):
             print(f"[draft] {folder.name}: caption not written yet, skipping")
@@ -297,8 +356,11 @@ def main() -> int:
             else:
                 print(f"[error] {folder.name}: {e} -- will retry next run")
             continue
-        write_result(folder, {"status": "published", "published_at": now.isoformat(), **res})
+        result = {"status": "published", "published_at": now.isoformat(), **res}
+        write_result(folder, result)  # saved first, so a Facebook problem can never re-post to Instagram
         print(f"[published] {folder.name} {res.get('permalink', '')}")
+        if cross_post(folder, post, result, now, args.dry_run):
+            write_result(folder, result)
 
     return 1 if failures else 0
 

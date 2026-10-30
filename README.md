@@ -5,6 +5,7 @@ Hands-off Instagram posting for My House Guardian.
 Drop a finished post (JPEG + caption + time) into `queue/`, push, and GitHub publishes it to Instagram at that time. Reels work the same way, with the video on the `reels` release, and Stories rotate automatically from `stories/`. Free to run: GitHub Actions on a timer plus Instagram's own API. No paid services.
 
 - **Setup:** [SETUP.md](SETUP.md), with every key listed fill-in-the-blank.
+- **Facebook:** once the Page is connected (SETUP.md, "Facebook Page"), every post and reel also goes to the My House Guardian Facebook Page. Stories don't.
 - **What's queued:** the `queue/` folder. A `result.json` in a folder means it's been handled: `published`, `missed` (too late) or `failed` (a problem retrying won't fix; the file says why, and deleting it tries again).
 - **Check the queue locally:** `python poster/queue_check.py`
 - **Edit a face-to-camera video into a Reel (captions, cuts, B-roll, end card):** `.venv/bin/python -m faceedit edit clip.mov --title "..."`. See [faceedit/README.md](faceedit/README.md)

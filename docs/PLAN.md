@@ -65,7 +65,7 @@ The real problems are reliability edge cases that can **double-post** or **silen
 10. **Expiry reminders (M4).** Add a `GH_SECRETS_TOKEN_EXPIRES` variable and have the weekly refresh fail loudly 30 days before that date. GitHub already emails on failure.
 
 ### Bigger: needs your OK (new API under your rules)
-11. **Cross-post to the Facebook Page (M2).** First try the zero-code route: Instagram's own "share to Facebook" setting, published with one test post. It's unconfirmed for API posts. If that doesn't work:
+11. **Cross-post to the Facebook Page (M2).** ✅ Built Oct 30, 2026 (`poster/facebook.py`), approved by Andrew; turns on when `FB_PAGE_ID` and `FB_PAGE_TOKEN` are set. First try the zero-code route: Instagram's own "share to Facebook" setting, published with one test post. It's unconfirmed for API posts. If that doesn't work:
     - **New API: Facebook Pages API** (`graph.facebook.com`).
     - Add Facebook Login to the same Meta app, then generate a long-lived user token → a Page token, which doesn't expire.
     - Two new secrets: `FB_PAGE_ID` and `FB_PAGE_TOKEN`.
