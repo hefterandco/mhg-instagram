@@ -18,7 +18,7 @@ import urllib.parse
 import urllib.request
 
 FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "")        # SECRET  the Page's numeric ID
-FB_PAGE_TOKEN = os.environ.get("FB_PAGE_TOKEN", "")  # SECRET  non-expiring Page access token
+FB_PAGE_TOKEN = os.environ.get("FB_PAGE_TOKEN", "")  # SECRET  Page token, or a User token that manages the Page
 FB_HOST = "https://graph.facebook.com"
 FB_UPLOAD_HOST = "https://rupload.facebook.com"
 FB_VERSION = os.environ.get("FB_GRAPH_VERSION") or "v26.0"
@@ -64,9 +64,26 @@ def _send(req: urllib.request.Request, label: str) -> dict:
         raise FacebookError(f"{label}: {err.get('message', body[:300])}{hint}", code) from None
 
 
+_page_token: str | None = None
+
+
+def page_token() -> str:
+    """The Page access token. If FB_PAGE_TOKEN is a User token (the long-lived one
+    from the Access Token Tool), swap it for the Page's own token, which Reels need."""
+    global _page_token
+    if _page_token is None:
+        url = f"{FB_HOST}/{FB_VERSION}/{FB_PAGE_ID}?" + urllib.parse.urlencode(
+            {"fields": "access_token", "access_token": FB_PAGE_TOKEN})
+        try:
+            _page_token = _send(urllib.request.Request(url), "Facebook page token").get("access_token") or FB_PAGE_TOKEN
+        except FacebookError:
+            _page_token = FB_PAGE_TOKEN  # already a Page token, or no access; the real call reports it
+    return _page_token
+
+
 def api(method: str, path: str, params: dict | None = None) -> dict:
     params = dict(params or {})
-    params["access_token"] = FB_PAGE_TOKEN
+    params["access_token"] = page_token()
     url = f"{FB_HOST}/{FB_VERSION}/{path.lstrip('/')}"
     data = None
     if method == "GET":
@@ -103,7 +120,7 @@ def start_reel(video_bytes: bytes) -> str:
     video_id = api("POST", f"{FB_PAGE_ID}/video_reels", {"upload_phase": "start"})["video_id"]
     req = urllib.request.Request(
         f"{FB_UPLOAD_HOST}/video-upload/{FB_VERSION}/{video_id}", data=video_bytes, method="POST",
-        headers={"Authorization": f"OAuth {FB_PAGE_TOKEN}", "offset": "0",
+        headers={"Authorization": f"OAuth {page_token()}", "offset": "0",
                  "file_size": str(len(video_bytes)), "Content-Type": "application/octet-stream"})
     _send(req, "Facebook reel upload")
     return video_id

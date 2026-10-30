@@ -47,6 +47,15 @@ for need in ("pages_show_list", "pages_read_engagement", "pages_manage_posts"):
     if need not in d.get("scopes", []):
         print(f"MISSING scope: {need}")
 
+if d.get("type") == "USER":
+    pt = get(PAGE_ID, {"fields": "access_token,name"})
+    if pt.get("access_token"):
+        TOKEN = pt["access_token"]
+        print(f"User token manages {pt.get('name')}: the poster swaps it for the Page token automatically.")
+        print(f"Page token:   type {get('debug_token', {'input_token': TOKEN}).get('data', {}).get('type')}")
+    else:
+        print(f"User token can't get a Page token for {PAGE_ID}: {pt.get('error', {}).get('message')}")
+
 me = get("me", {"fields": "id,name"})
 print(f"/me:          {me.get('name')} ({me.get('id')})" if "error" not in me
       else f"/me failed:   {me['error'].get('message')}")
