@@ -22,6 +22,7 @@ UA = "mhg-faceedit/1.0 (+https://myhouseguardian.com)"
 # Saying the company name shouldn't trigger the generic "house" B-roll.
 IGNORE = [["my", "house", "guardian"], ["my", "house", "guardian's"]]
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
+IMAGE_EXT = {".jpg", ".jpeg", ".png"}  # photos are shown framed over a blurred fill, with a slow push-in
 
 
 def load_topics(extra: str | Path | None = None) -> list[dict]:
@@ -116,7 +117,7 @@ class _Finder:
         self.key = secret("PEXELS_API_KEY")
         self.pixabay = secret("PIXABAY_API_KEY")
         self.local = [p for p in Path(local_dir).expanduser().rglob("*")
-                      if p.suffix.lower() in VIDEO_EXT] if local_dir else []
+                      if p.suffix.lower() in VIDEO_EXT | IMAGE_EXT] if local_dir else []
         self.n = cfg.get("options", 3)
         self.avoid = [a.lower() for a in cfg.get("avoid_tags", [])]
         self.general = cfg.get("general_stock", [])
@@ -159,8 +160,15 @@ class _Finder:
         return True
 
 
+# Words too general to match a clip on their own: "replacing furnace air filter" must not
+# pull up an air conditioner just because both say "air".
+GENERIC = {"air", "water", "house", "home", "kitchen", "room", "roof", "winter", "outdoor", "indoor", "test", "testing",
+           "check", "care", "cleaning", "clearing", "record", "data", "plate", "washing", "snow", "range",
+           "the", "and", "of", "a"}
+
+
 def _local_matches(search: str, files: list[Path], used: set, n: int) -> list[Path]:
-    words = set(search.lower().split())
+    words = set(search.lower().split()) - GENERIC
     scored = []
     for f in files:
         if str(f) in used:

@@ -88,16 +88,27 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
         if not (m.get("file") or m.get("download")) or m.get("approved") is False:
             continue  # no clip, or a stock suggestion nobody approved
         path = broll_mod.local_path(m)
-        clip = probe(path)
         T = snap_to_edited(m["at"], segs)
         dur = min(m["seconds"], L - T - 0.2)
         if dur < 0.8:
             continue
-        offset = min(1.0, max(0.0, clip.duration - dur - 0.1))
-        args += ["-i", str(path)]
-        g.append(f"[{n_in}:v]trim=start={offset:.2f}:duration={dur:.2f},setpts=PTS-STARTPTS+{T:.3f}/TB,"
-                 f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1,fps={FPS},"
-                 f"format=yuv420p[b{j}]")
+        if path.suffix.lower() in broll_mod.IMAGE_EXT:
+            # A photo: sharp and whole in the middle of the frame, over a soft blurred fill
+            # of itself, with a slow push-in so it doesn't read as a still.
+            args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{dur:.2f}", "-i", str(path)]
+            g.append(f"[{n_in}:v]split[ia{j}][ib{j}]")
+            g.append(f"[ia{j}]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+                     f"boxblur=40:3,eq=brightness=-0.08[bg{j}]")
+            g.append(f"[ib{j}]scale={W}:{int(H * 0.72)}:force_original_aspect_ratio=decrease:flags=lanczos[fg{j}]")
+            g.append(f"[bg{j}][fg{j}]overlay=(W-w)/2:(H-h)/2,setsar=1{_push(max(push, 0.04) * 1.5, dur, FPS, 0.5)},"
+                     f"format=yuv420p,setpts=PTS-STARTPTS+{T:.3f}/TB[b{j}]")
+        else:
+            clip = probe(path)
+            offset = min(1.0, max(0.0, clip.duration - dur - 0.1))
+            args += ["-i", str(path)]
+            g.append(f"[{n_in}:v]trim=start={offset:.2f}:duration={dur:.2f},setpts=PTS-STARTPTS+{T:.3f}/TB,"
+                     f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1,fps={FPS},"
+                     f"format=yuv420p[b{j}]")
         g.append(f"[{v}][b{j}]overlay=eof_action=pass:enable='between(t,{T:.3f},{T + dur:.3f})'[vb{j}]")
         v = f"vb{j}"
         n_in += 1

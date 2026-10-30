@@ -71,8 +71,23 @@ search = "garage door rollers lubricate"
 stock = []
 
 [[topic]]
-say = ["appliance", "appliances", "fridge", "refrigerator", "coils", "dishwasher", "water filter"]
-search = "fridge coils appliance care"
+say = ["washing machine", "washer", "washers", "laundry", "laundry room"]
+search = "washing machine laundry"
+stock = []
+
+[[topic]]
+say = ["dishwasher", "dishwashers"]
+search = "dishwasher kitchen"
+stock = []
+
+[[topic]]
+say = ["stove", "oven", "range", "cooktop", "kitchen"]
+search = "stove oven range kitchen"
+stock = []
+
+[[topic]]
+say = ["appliance", "appliances", "fridge", "refrigerator", "coils", "water filter"]
+search = "refrigerator fridge appliance coils"
 stock = []
 
 [[topic]]
@@ -97,10 +112,25 @@ stock = []
 
 [[topic]]
 say = ["thermostat", "heating", "furnace", "boiler", "hvac", "tune-up"]
-search = "thermostat furnace check"
+search = "thermostat furnace boiler heating"
 stock = []
 
 # ------------------------------------------------- partner bundles
+
+[[topic]]
+say = ["lawn", "lawns", "mowing", "mower", "landscaping", "yard", "yards"]
+search = "lawn mowing landscaping yard"
+stock = []
+
+[[topic]]
+say = ["irrigation", "sprinkler", "sprinklers", "blowout"]
+search = "lawn sprinkler irrigation"
+stock = []
+
+[[topic]]
+say = ["ice dam", "ice dams", "icicles"]
+search = "icicles gutter ice dam winter"
+stock = []
 
 [[topic]]
 say = ["leaf cleanup", "leaves", "raking", "leaf blower"]

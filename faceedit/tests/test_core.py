@@ -109,6 +109,17 @@ def test_broll_ignores_company_name_and_matches_hyphenated_phrases():
     assert [p["said"] for p in picked] == ["to-do list."]
 
 
+def test_local_match_needs_a_distinctive_word():
+    import tempfile
+    d = Path(tempfile.mkdtemp())
+    for n in ("ac-condenser-air-conditioner-outdoor-unit.jpg", "outdoor-spigot-faucet-brick-wall-hose.jpg"):
+        (d / n).write_bytes(b"")
+    files = list(d.iterdir())
+    assert broll._local_matches("replacing furnace air filter", files, set(), 3) == []
+    assert [f.name for f in broll._local_matches("outdoor spigot winterize hose", files, set(), 3)] == [
+        "outdoor-spigot-faucet-brick-wall-hose.jpg"]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

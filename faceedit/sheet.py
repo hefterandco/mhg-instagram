@@ -29,7 +29,9 @@ def _thumb(opt: dict) -> Image.Image | None:
     d = cache_dir() / "thumbs"
     d.mkdir(parents=True, exist_ok=True)
     try:
-        if opt.get("source") == "local":
+        if opt.get("source") == "local" and Path(opt["file"]).suffix.lower() in (".jpg", ".jpeg", ".png"):
+            out = Path(opt["file"]).expanduser()
+        elif opt.get("source") == "local":
             out = d / (str(abs(hash(opt["file"]))) + ".jpg")
             if not out.exists():
                 subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", "1", "-i", str(Path(opt["file"]).expanduser()),
@@ -80,7 +82,9 @@ def write_sheet(plan: dict, out: Path) -> Path:
                 sheet.paste(img, (x + (THUMB_W - img.width) // 2, y + 40 + (THUMB_H - img.height) // 2))
             if i == pick and approved:
                 d.rectangle(box, outline=CLAY, width=8)
-            label = f"{i + 1}  {'your clip' if opt.get('source') == 'local' else opt.get('source', '')}"
+            src = opt.get("source", "")
+            label = f"{i + 1}  " + ("library" if src == "local" and "/stock/" in opt.get("file", "") else
+                                   "your clip" if src == "local" else src)
             d.rectangle((x, y + 40, x + 170, y + 74), fill=GREEN)
             d.text((x + 10, y + 43), label, font=small, fill=CREAM)
         y += row_h
