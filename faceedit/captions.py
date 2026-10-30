@@ -16,7 +16,8 @@ def _ts(t: float) -> str:
 
 
 def _clean(word: str) -> str:
-    w = re.sub(r"[.,;:\"“”]+", "", word).strip()
+    # Keeps the colon in a clock time like 11:45; strips all other punctuation.
+    w = re.sub(r"(?<!\d):(?!\d)|[.,;\"“”]+", "", word).strip()
     return w.replace("\\", "").replace("{", "(").replace("}", ")")
 
 

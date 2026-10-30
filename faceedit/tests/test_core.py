@@ -120,8 +120,57 @@ def test_local_match_needs_a_distinctive_word():
         "outdoor-spigot-faucet-brick-wall-hose.jpg"]
 
 
+
+
+def _fx_words(text, start=4.0):
+    return words(*[(w, start + i * 0.4, start + i * 0.4 + 0.3) for i, w in enumerate(text.split())])
+
+
+def test_callouts_find_number_phrases_but_never_prices():
+    from faceedit import fx
+    ws = _fx_words("change the filter every three months. it costs about $200 a month. "
+                   "and 150 dollars a year. we come twice a month on visits")
+    hits = fx._callout_hits(ws, [], {x.lower() for x in S["popups"]["never"]})
+    assert [h[2] for h in hits] == ["Every three months"]
+
+
+def test_popups_and_zooms_stay_clear_of_hook_and_broll():
+    from faceedit import fx
+    ws = words(("our", 0.6, 0.9), ("house", 1.0, 1.3), ("record", 1.3, 1.6),   # inside the hook: no pop-up
+               ("never", 4.5, 4.8),                                          # zoom
+               ("data", 6.5, 6.8), ("plate", 6.8, 7.1),                      # under the cutaway: skipped
+               ("data", 10.0, 10.3), ("plate", 10.3, 10.6), ("now", 15.0, 15.3))
+    segs = [{"start": 0.0, "end": 20.0}]
+    broll_m = [{"at": 6.0, "seconds": 2.4, "file": "x.mp4"}]
+    pops, zs = fx.choose(ws, segs, broll_m, broll.load_topics(), fx.load_callouts(), S, "", title_seconds=3.0)
+    assert [(p["at"], p["text"]) for p in pops] == [(10.0, "Data plate")]
+    assert [z["said"] for z in zs] == ["never", "now"]
+
+
+def test_zoom_bumps_and_sounds():
+    import tempfile
+    from faceedit import fx, sfx
+    from faceedit.render import _push
+    seg = {"start": 1.0, "end": 4.0}
+    bumps = fx.zoom_bumps(seg, [{"at": 2.0}, {"at": 9.0}], S["zooms"], 30)
+    assert bumps == [(30, 60, S["zooms"]["amount"])]
+    assert "clip((in-30)/3,0,1)" in _push(0.04, 3.0, 30, 0.38, bumps)
+    assert _push(0, 3.0, 30, 0.38) == ""
+    d = Path(tempfile.mkdtemp())
+    for name in sfx.NAMES:
+        assert sfx.sound(name, {}, d).stat().st_size > 1000
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
             fn()
             print("ok", name)
+
+
+def test_clock_times_keep_their_colon():
+    from faceedit.captions import _clean
+    assert _clean("11:45") == "11:45"
+    assert _clean("2:30,") == "2:30"
+    assert _clean("Monday:") == "Monday"
+    assert _clean("p.m.") == "pm"
