@@ -1,206 +1,169 @@
 # B-roll for My House Guardian: what you say -> what cuts away on screen.
 #
-# The principle: B-roll shows what My House Guardian takes off the homeowner's
-# plate, in a warm, real, Fairfield way. We're the neighbor with a key, not a
-# vendor or a security company. Three kinds, in priority order (first match wins):
+# Every cutaway is maintenance or construction work around the home: the
+# preventative care list, the partner bundles, to-do visits and projects. Nothing
+# else (no family, scenery or seasons).
 #
-#   service  the work, done for them: house manager, to-do visits, partner
-#            bundles, the house record. YOUR OWN footage only. Stock can't show
-#            our service honestly, so "stock" is [] for these.
-#   life     the homeowner's time back: family moments. Stock allowed.
-#   place    season and setting, as texture: foliage, snowfall, lights. Stock
-#            allowed, but never stock houses or streets (Pixabay's "colonial
-#            house" is Mexico); Fairfield homes come from your own footage.
+# Sources, in order:
+#   1. YOUR clips in ~/Movies/MHG-broll whose file names share words with "search".
+#      These sell the service; film them (the review sheet lists what's missing).
+#   2. "stock": Pixabay searches specific to the topic (a clip must be tagged with
+#      every word of one).
+#   3. If neither, the vetted general home-work pool, [broll] general_stock in
+#      faceedit.toml (screwdriver, hammer, carpentry, paint roller...). Pixabay has
+#      no footage of spigots, filters, detectors, sump pumps or weatherstripping,
+#      so those moments show general house work until you film the real thing.
 #
-# Never: disasters as a scare (floods, fires, burst pipes), shields/locks/alarms,
-# a worker doing licensed trade work (implies "we do it", CGS 20-334), senior
-# care, house numbers or street signs, brands. [broll] avoid_tags in
-# faceedit.toml drops stock clips tagged with any of these.
-#
-# Fields: say = trigger words/phrases. search = words matched against YOUR clip
-# file names in ~/Movies/MHG-broll (name files with these words). stock = short
-# Pixabay searches; a clip is used only if its tags contain every word of one.
-# allow = tags this topic may use even though avoid_tags blocks them.
-# For a one-off video, use `faceedit broll <plan>` to swap or drop picks.
+# Never shown: licensed trade work as if we do it (wiring, gas, refrigerant,
+# plumbing repairs), scare/disaster, security imagery, brands (avoid_tags).
+# Topics higher in the file win when one sentence matches several.
 
-# ---------------------------------------------------------------- service
+# ------------------------------------------------- preventative care (every visit)
 
 [[topic]]
-kind = "service"
-say = ["house manager", "one call", "one-call", "handle it all", "handle-it-all", "one number", "call us", "give us a call"]
-search = "house manager phone call"
-stock = []
-
-[[topic]]
-kind = "service"   # free emergency first call: show the call being made, never the disaster
-say = ["emergency", "leak", "leaks", "leaking", "burst pipe", "frozen pipe", "frozen pipes", "flood", "flooding", "water damage"]
-search = "house manager phone call"
-stock = []
-
-[[topic]]
-kind = "service"
-say = ["history", "house record", "record", "data plate", "service history", "how old"]
-search = "house record data plate photo"
-stock = []
-
-[[topic]]
-kind = "service"
-say = ["to-do list", "to-do", "honey-do", "checklist", "punch list", "odd jobs", "handyman", "repair", "fix", "fixing"]
-search = "to do list visit checklist"
-stock = ["notepad writing"]
-
-[[topic]]
-kind = "service"
-say = ["contractor", "contractors", "chasing contractors", "vendor", "vendors", "trades"]
-search = "house manager meeting contractor"
-stock = []
-
-[[topic]]
-kind = "service"
-say = ["air filter", "air filters", "filter", "filters"]
-search = "replacing furnace air filter"
-stock = []
-
-[[topic]]
-kind = "service"
-say = ["smoke detector", "smoke detectors", "carbon monoxide", "detector", "detectors"]
+say = ["smoke detector", "smoke detectors", "carbon monoxide", "co detector", "detector", "detectors", "batteries"]
 search = "testing smoke detector"
 stock = []
 
 [[topic]]
-kind = "service"
+say = ["air filter", "air filters", "hvac filter", "filter", "filters"]
+search = "replacing furnace air filter"
+stock = []
+
+[[topic]]
+say = ["garbage disposal", "disposal", "drain", "drains", "clog", "clogged"]
+search = "clearing drain disposal"
+stock = []
+
+[[topic]]
+say = ["house record", "history", "record", "data plate", "shutoff", "shutoffs", "main water", "breaker panel",
+       "walkthrough", "leak", "leaks", "leaking", "water damage"]
+search = "house record data plate shutoff"
+stock = []
+
+# ------------------------------------------------- preventative care (seasonal)
+
+[[topic]]
+say = ["spigot", "spigots", "hose bib", "hose bibs", "outdoor faucet", "faucet", "faucets", "hoses",
+       "frozen pipe", "frozen pipes", "burst pipe", "pipes freeze"]
+search = "outdoor spigot winterize hose"
+stock = []
+
+[[topic]]
+say = ["sump pump", "sump", "basement"]
+search = "sump pump test basement"
+stock = []
+
+[[topic]]
 say = ["condenser", "condenser cover", "ac unit", "air conditioner"]
 search = "ac condenser cover"
 stock = []
 
 [[topic]]
-kind = "service"
-say = ["gutter", "gutters", "downspout", "downspouts"]
-search = "cleaning gutters"
-stock = ["rain gutter"]
+say = ["weatherproofing", "weatherstripping", "weather stripping", "door sweep", "door sweeps", "caulk", "caulking",
+       "drafts", "drafty", "seal", "sealing"]
+search = "weatherstripping door sweep caulk"
+stock = []
 
 [[topic]]
-kind = "service"
-say = ["leaf cleanup", "leaves", "leaf", "raking"]
-search = "leaf cleanup raking leaves"
-stock = ["autumn leaves", "fallen leaves"]
+say = ["garage door", "garage"]
+search = "garage door rollers lubricate"
+stock = []
 
 [[topic]]
-kind = "service"
-say = ["snow plowing", "plow", "plowing", "snowstorm", "driveway"]
-search = "snow plow driveway"
-stock = ["snowfall", "snow falling"]
+say = ["appliance", "appliances", "fridge", "refrigerator", "coils", "dishwasher", "water filter"]
+search = "fridge coils appliance care"
+stock = []
 
 [[topic]]
-kind = "service"
+say = ["range hood", "hood filter", "bath fan", "bathroom fan", "exhaust fan"]
+search = "range hood filter cleaning"
+stock = []
+
+[[topic]]
+say = ["gfci", "outlet", "outlets"]
+search = "gfci outlet test"
+stock = []
+
+[[topic]]
+say = ["gutter", "gutters", "downspout", "downspouts", "spout", "spouts"]
+search = "gutter downspout cleaning"
+stock = []
+
+[[topic]]
+say = ["dryer vent", "dryer", "lint"]
+search = "dryer vent cleaning"
+stock = []
+
+[[topic]]
+say = ["thermostat", "heating", "furnace", "boiler", "hvac", "tune-up"]
+search = "thermostat furnace check"
+stock = []
+
+# ------------------------------------------------- partner bundles
+
+[[topic]]
+say = ["leaf cleanup", "leaves", "raking", "leaf blower"]
+search = "leaf cleanup blower"
+stock = []
+
+[[topic]]
+say = ["snow plowing", "plow", "plowing", "snow", "shovel", "shoveling", "snowstorm", "driveway"]
+search = "snow plow driveway shovel"
+stock = []
+
+[[topic]]
 say = ["shrink wrap", "shrink-wrap", "patio furniture", "outdoor furniture"]
 search = "shrink wrap patio furniture"
 stock = []
 
 [[topic]]
-kind = "service"
-say = ["windows", "window washing"]
-search = "window washing"
-stock = ["window cleaning"]
+say = ["windows", "window washing", "soft wash", "power wash", "power washing", "pressure wash", "siding"]
+search = "window washing soft wash siding"
+stock = []
 
 [[topic]]
-kind = "service"
-say = ["soft wash", "power wash", "power washing", "siding"]
-search = "soft wash siding"
-stock = ["pressure washer"]
-
-[[topic]]
-kind = "service"
-say = ["chimney", "chimney sweep"]
+say = ["chimney", "chimney sweep", "fireplace"]
 search = "chimney sweep"
 stock = []
 
 [[topic]]
-kind = "service"
-say = ["dryer vent", "dryer", "lint"]
-search = "dryer vent cleaning"
-stock = ["laundry"]
-
-[[topic]]
-kind = "service"
 say = ["holiday lights", "christmas lights", "holiday lighting"]
-search = "holiday lights install"
-stock = ["christmas lights"]
-
-# Licensed partner plans: show the result or the setting, never a worker doing the trade.
-[[topic]]
-kind = "service"
-say = ["pool", "pool opening", "pool closing"]
-search = "pool backyard"
-stock = ["swimming pool"]
-
-[[topic]]
-kind = "service"
-say = ["irrigation", "sprinkler", "sprinklers", "blowout"]
-search = "lawn sprinkler"
-stock = ["garden sprinkler", "sprinkler"]
-
-[[topic]]
-kind = "service"
-say = ["thermostat", "heating", "furnace", "boiler", "tune-up", "hvac"]
-search = "adjusting thermostat"
-stock = ["thermostat"]
-
-[[topic]]
-kind = "service"
-say = ["water heater", "generator", "septic", "radon", "water testing"]
-search = "house manager walkthrough basement"
+search = "holiday lights install ladder"
 stock = []
 
 [[topic]]
-kind = "service"
-say = ["ticks", "tick", "mosquito", "mosquitoes", "pests", "lyme"]
-search = "backyard lawn summer"
-stock = ["tall grass"]
+say = ["roof", "roofs", "shingles", "shingle"]
+search = "roof shingles"
+stock = ["roof construction"]
 
-# ---------------------------------------------------------------- life
-
-[[topic]]
-kind = "life"
-say = ["family", "families", "kids", "busy", "weekend", "weekends", "your time", "no time", "the time"]
-search = "family time"
-stock = ["kids playing", "family breakfast"]
+# ------------------------------------------------- to-do visits and projects
 
 [[topic]]
-kind = "life"
-say = ["fireplace", "cozy"]
-search = "fireplace"
-stock = ["fireplace"]
-allow = ["fire", "flame", "flames", "burning"]
+say = ["paint", "painting", "touch up", "touch-up", "drywall", "patch", "patches"]
+search = "paint touch up drywall patch"
+stock = ["paint roller", "painter renovate"]
 
 [[topic]]
-kind = "life"
-say = ["vacation", "florida", "snowbird", "snowbirds", "traveling", "trip"]
-search = "packing suitcase"
-stock = ["suitcase", "packing"]
-
-# ---------------------------------------------------------------- place
+say = ["to-do list", "to-do", "honey-do", "checklist", "punch list", "repair", "repairs", "fix", "fixing",
+       "handyman", "mount", "mounting", "shelves"]
+search = "to do list handyman repair"
+stock = ["screwdriver screw", "handyman repair"]
 
 [[topic]]
-kind = "place"
-say = ["fall", "autumn", "october", "november", "foliage"]
-search = "fall foliage"
-stock = ["fall foliage"]
+say = ["project", "projects", "renovation", "renovations", "remodel", "construction", "addition"]
+search = "contractor construction project"
+stock = ["construction repair", "builder repair", "roof construction"]
 
 [[topic]]
-kind = "place"
-say = ["winter", "december", "january", "february", "cold", "freezing", "snow"]
-search = "snowfall"
-stock = ["snowfall", "snow falling"]
+say = ["house manager", "one call", "one-call", "handle it all", "handle-it-all", "contractor", "contractors",
+       "trades", "vendor", "vendors"]
+search = "house manager contractor walkthrough"
+stock = ["builder repair", "construction repair"]
+
+# ------------------------------------------------- general (last resort)
 
 [[topic]]
-kind = "place"
-say = ["spring", "april"]
-search = "spring blossoms"
-stock = ["spring blossom"]
-
-[[topic]]
-kind = "place"   # your own Fairfield-area shots only: no stock houses, no house numbers
-say = ["fairfield", "fairfield county", "westport", "greenwich", "connecticut", "new england", "neighborhood", "neighbors"]
-search = "fairfield neighborhood street"
+say = ["maintenance", "upkeep", "homes", "home", "house", "attention", "take care", "taking care"]
+search = "home maintenance"
 stock = []

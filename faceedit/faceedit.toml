@@ -64,6 +64,14 @@ protect_end = 1.0
 seconds_per_clip = 7.0   # at most one cutaway per this many seconds of video
 local_dir = "~/Movies/MHG-broll"  # your own clips, used before Pexels (Pexels is skipped while no key is set)
 options = 3              # candidates kept per moment, shown on the review sheet
+# Stock tags describe what the uploader typed, not what's on screen, so stock is only
+# suggested: it goes in the video once approved with `faceedit broll <plan> 2=1`.
+# Your own clips are used automatically.
+stock_needs_approval = true
+# Vetted Pixabay searches for general home work, used when a moment has no clip of
+# its own and no topic-specific stock. Each was checked to return real house work.
+general_stock = ["screwdriver screw", "handyman repair", "hammer nail", "carpentry", "drill hole",
+                 "paint roller", "construction repair", "builder repair"]
 # Stock clips tagged with any of these are never used (see broll_topics.toml for why).
 avoid_tags = [
   # scare and disaster, security imagery
@@ -77,7 +85,15 @@ avoid_tags = [
   "airport", "office", "restaurant", "food", "cooking", "dinner", "meal", "fish", "lake", "mountain", "village",
   "netherlands", "mexico", "japan", "china", "india", "thailand", "dubai", "paris", "london", "italy", "korea",
   # brands and text
-  "logo", "brand", "advertising", "sign",
+  "logo", "brand", "advertising", "sign", "products",
+  # not house work: vehicles, farms, factories, crafts, junk matches
+  "car", "vehicle", "truck", "mechanic", "automobile", "tractor", "agriculture", "harvest", "excavator", "road",
+  "street", "bridge", "ship", "factory", "industry", "industrial", "lathe", "miniature", "model", "cpu", "jewel",
+  "ring", "cigarette", "coins", "piggy bank", "graffiti", "ruins", "burnt", "burned", "halloween", "chess",
+  "chromakey", "green screen",
+  # workshop and road work, not house work
+  "grinder", "angle grinder", "welding", "welder", "sparks", "metal", "metalwork", "lathe", "paving", "asphalt",
+  "compactor", "sidewalk", "pavement", "road works", "roadwork", "highway",
 ]
 
 [endcard]

@@ -72,7 +72,7 @@ def make_plan(src: Path, args, settings: dict) -> dict:
         "segments": segs,
         "hidden_fillers": hidden,
         "broll": moments,
-        "broll_missing": [w for w in warnings if w.startswith("No clip")],
+        "broll_missing": [w for w in warnings if w.startswith("No clip of your own")],
         "words": words,
     }
     fillers = sum(1 for w in words if w.get("filler"))
@@ -86,7 +86,8 @@ def make_plan(src: Path, args, settings: dict) -> dict:
     for a, b in hidden:
         print(f"  cut a sound with no word at {a:.2f}-{b:.2f}s (likely um/uh)")
     for m in moments:
-        print(f"  B-roll at {m['at']:.1f}s (\"{m['said']}\"): {m['search']} [{m.get('source')}]")
+        state = "" if m.get("approved", True) else ", suggestion: approve on the review sheet"
+        print(f"  B-roll at {m['at']:.1f}s (\"{m['said']}\"): {m['search']} [{m.get('source')}{state}]")
     for w in warnings:
         print(f"  note: {w}")
     if not faces and not args.no_reframe:
@@ -111,14 +112,16 @@ def review_broll(plan_path: Path, changes: list[str]) -> int:
             drop.add(k - 1)
         elif 1 <= opt <= len(m.get("options", [])):
             apply_option(m, m["options"][opt - 1])
+            m["approved"] = True
         else:
             raise SystemExit(f"Moment {k} has {len(m.get('options', []))} options")
     plan["broll"] = [m for i, m in enumerate(moments) if i not in drop]
     plan_path.write_text(json.dumps(plan, indent=1))
     for k, m in enumerate(plan["broll"], 1):
         use = m.get("file") or m.get("page") or m.get("download")
-        print(f"{k}. \"{m['said']}\" [{m.get('kind', '')}] -> {Path(use).name if m.get('file') else use}"
-              f"  ({len(m.get('options', []))} options)")
+        state = "in use" if m.get("approved", True) else "suggestion, not used until approved"
+        print(f"{k}. \"{m['said']}\" -> {Path(use).name if m.get('file') else use}"
+              f"  ({len(m.get('options', []))} options; {state})")
     sheet = write_sheet(plan, Path(plan["source"]).with_name(Path(plan["source"]).stem + ".broll.jpg"))
     print(f"Sheet: {sheet}")
     return 0

@@ -79,7 +79,7 @@ def choose(words: list[dict], segments: list[dict], topics: list[dict], cfg: dic
             continue
         tried.add(t["search"])
         m = {"_t": at, "at": round(spoken[i]["s"] - 0.1, 3), "seconds": dur, "said": said,
-             "kind": t.get("kind", ""), "search": t["search"], "stock": t.get("stock", []), "allow": t.get("allow", [])}
+             "search": t["search"], "stock": t.get("stock", []), "allow": t.get("allow", [])}
         if finder.fill(m):
             picked.append(m)
     picked.sort(key=lambda p: p["_t"])
@@ -100,7 +100,7 @@ def fill_missing(moments: list[dict], local_dir: str = "", cfg: dict | None = No
 # ---------------------------------------------------------------- sources
 
 SOURCE_KEYS = ("source", "file", "download", "pixabay_id", "pexels_id", "page", "by", "tags", "query",
-               "clip_length", "thumb")
+               "clip_length", "thumb", "user_id")
 
 
 def apply_option(m: dict, opt: dict) -> None:
@@ -119,6 +119,8 @@ class _Finder:
                       if p.suffix.lower() in VIDEO_EXT] if local_dir else []
         self.n = cfg.get("options", 3)
         self.avoid = [a.lower() for a in cfg.get("avoid_tags", [])]
+        self.general = cfg.get("general_stock", [])
+        self.approve_stock = cfg.get("stock_needs_approval", True)
         self.used: set = set()
         self.warnings: list[str] = []
 
@@ -126,7 +128,11 @@ class _Finder:
         """Finds up to `options` candidates: your own clips first, then stock (only for
         topics that allow it). The first is used; the rest go on the review sheet."""
         opts = [{"source": "local", "file": str(f)} for f in _local_matches(m["search"], self.local, self.used, self.n)]
-        stock = m.get("stock") or []
+        if not opts:
+            # Stock can fill in, but the real shot of this task is what sells it: keep it on the film list.
+            self.warnings.append(f"No clip of your own for \"{m['said']}\": film one and name it with "
+                                 f"\"{m['search']}\" in ~/Movies/MHG-broll.")
+        stock = (m.get("stock") or []) + self.general
         if len(opts) < self.n and stock and self.pixabay:
             try:
                 opts += _pixabay_search(stock, m["seconds"], self.pixabay, self.used, self.n - len(opts),
@@ -141,15 +147,15 @@ class _Finder:
             except RuntimeError as e:
                 self.warnings.append(f"Pexels search for '{m['search']}' failed: {e}")
         if not opts:
-            why = (" Stock isn't used here: this moment should show your own service."
-                   if not stock else " Nothing on-brand turned up in stock either.")
-            self.warnings.append(f"No clip for \"{m['said']}\": film one and name it with \"{m['search']}\" "
-                                 f"in ~/Movies/MHG-broll.{why}")
+            self.warnings.append(f"Nothing usable in stock for \"{m['said']}\" either, so no cutaway there.")
             return False
-        for o in opts:
+        for o in opts[:1]:  # only the clip in use is reserved; alternates may reappear elsewhere
             self.used.add(o.get("file") or f"{o['source']}-{o.get(o['source'] + '_id')}")
+            if o.get("user_id"):
+                self.used.add(f"pixabay-user-{o['user_id']}")
         m["options"] = opts
         apply_option(m, opts[0])
+        m["approved"] = opts[0]["source"] == "local" or not self.approve_stock
         return True
 
 
@@ -183,7 +189,9 @@ def _pixabay_search(queries: list[str], seconds: float, key: str, used: set, n: 
         for h in data.get("hits", []):
             tags = [t.strip() for t in h.get("tags", "").lower().split(",")]
             tag_words = {w for t in tags for w in t.split()}
-            if (f"pixabay-{h['id']}" in used or any(f["pixabay_id"] == h["id"] for f in found)
+            # One clip per contributor per video, so cutaways aren't the same scene over and over.
+            if (f"pixabay-{h['id']}" in used or f"pixabay-user-{h.get('user_id')}" in used
+                    or any(f["pixabay_id"] == h["id"] or f.get("user_id") == h.get("user_id") for f in found)
                     or h.get("duration", 0) < seconds + 1
                     or not all(any(w in t for t in tags) for w in words)
                     or any(a in tags or (" " not in a and a in tag_words) for a in (avoid or []))):
@@ -196,6 +204,7 @@ def _pixabay_search(queries: list[str], seconds: float, key: str, used: set, n: 
             if f:
                 found.append({"source": "pixabay", "pixabay_id": h["id"], "download": f["url"], "query": query,
                               "tags": h.get("tags", ""), "page": h.get("pageURL", ""), "by": h.get("user", ""),
+                              "user_id": h.get("user_id"),
                               "clip_length": h.get("duration", 0), "thumb": h["videos"]["medium"].get("thumbnail", "")})
                 if len(found) >= n:
                     return found

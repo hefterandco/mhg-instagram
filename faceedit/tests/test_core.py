@@ -44,24 +44,26 @@ def test_caption_chunks_and_ass():
     assert ass.count("Dialogue:") == 5 and "full." not in ass  # periods stripped
 
 
-def test_broll_service_beats_life_and_respects_hook():
+def test_broll_specific_task_beats_generic_and_respects_hook():
     ws = words(*[(f"w{i}", i * 0.5, i * 0.5 + 0.3) for i in range(40)])
     ws[2]["w"] = "gutters"      # inside the protected hook: skipped
-    ws[20]["w"] = "family"      # life moment
-    ws[22]["w"] = "gutters"     # service moment: wins the slot
+    ws[20]["w"] = "maintenance" # generic home-work moment
+    ws[22]["w"] = "spigots"     # a preventative task: wins the slot
     segs = [{"start": 0.0, "end": 20.0}]
     import tempfile
     d = Path(tempfile.mkdtemp())
-    (d / "cleaning-gutters-fairfield.mp4").write_bytes(b"")
-    (d / "family-time-yard.mp4").write_bytes(b"")
+    (d / "outdoor-spigot-winterize.mp4").write_bytes(b"")
+    (d / "home-maintenance-ladder.mp4").write_bytes(b"")
     picked, _ = broll.choose(ws, segs, broll.load_topics(), S["broll"], str(d))
-    assert picked and picked[0]["said"] == "gutters" and picked[0]["kind"] == "service"
+    assert picked and picked[0]["said"] == "spigots" and picked[0]["source"] == "local"
     assert all(p["at"] > S["broll"]["protect_start"] for p in picked)
 
 
-def test_service_moments_never_use_stock():
-    t = next(t for t in broll.load_topics() if "filter" in t["say"])
-    assert t["kind"] == "service" and t["stock"] == []
+def test_only_home_work_topics():
+    topics = broll.load_topics()
+    said = {w for t in topics for w in t["say"]}
+    assert {"spigots", "downspouts", "filter", "weatherstripping", "sump pump"} <= said
+    assert not ({"family", "kids", "vacation", "autumn"} & said)
 
 
 def test_retake_drops_earlier_take():

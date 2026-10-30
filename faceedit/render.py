@@ -85,8 +85,8 @@ def render(plan: dict, settings: dict, out: Path, keep_temp: bool = False) -> Pa
     for w in broll_mod.fill_missing(plan.get("broll", []), settings["broll"]["local_dir"], settings["broll"]):
         print(f"  note: {w}")
     for j, m in enumerate(plan.get("broll", [])):
-        if not (m.get("file") or m.get("download")):
-            continue
+        if not (m.get("file") or m.get("download")) or m.get("approved") is False:
+            continue  # no clip, or a stock suggestion nobody approved
         path = broll_mod.local_path(m)
         clip = probe(path)
         T = snap_to_edited(m["at"], segs)

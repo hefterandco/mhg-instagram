@@ -58,15 +58,16 @@ def write_sheet(plan: dict, out: Path) -> Path:
     sheet = Image.new("RGB", (width, height), CREAM)
     d = ImageDraw.Draw(sheet)
     d.text((PAD, PAD), "B-roll review", font=head, fill=GREEN)
-    d.text((PAD, PAD + 52), "Outlined = in use. Change with: faceedit broll <plan> MOMENT=OPTION  (0 drops it)",
+    d.text((PAD, PAD + 52), "Outlined = in use. Stock is only a suggestion until approved: faceedit broll <plan> MOMENT=OPTION",
            font=small, fill=STONE)
     y = 110
     if not moments:
         d.text((PAD, y), "No cutaways in this video.", font=body, fill=STONE)
     for k, m in enumerate(moments, 1):
         t = to_edited(m["at"] + 0.1, plan["segments"]) or 0
-        d.text((PAD, y), f"{k}.  {int(t // 60)}:{int(t % 60):02d}  \"{m['said']}\"   [{m.get('kind') or 'b-roll'}: {m['search']}]",
-               font=body, fill=GREEN)
+        approved = m.get("approved", True)
+        d.text((PAD, y), f"{k}.  {int(t // 60)}:{int(t % 60):02d}  \"{m['said']}\"   [{m['search']}]"
+               + ("" if approved else "   SUGGESTIONS, none in use"), font=body, fill=GREEN if approved else CLAY)
         options = m.get("options") or [m]
         pick = next((i for i, o in enumerate(options) if (o.get("file") or o.get("download")) in
                      (m.get("file"), m.get("download"))), 0)
@@ -77,7 +78,7 @@ def write_sheet(plan: dict, out: Path) -> Path:
             img = _thumb(opt)
             if img:
                 sheet.paste(img, (x + (THUMB_W - img.width) // 2, y + 40 + (THUMB_H - img.height) // 2))
-            if i == pick:
+            if i == pick and approved:
                 d.rectangle(box, outline=CLAY, width=8)
             label = f"{i + 1}  {'your clip' if opt.get('source') == 'local' else opt.get('source', '')}"
             d.rectangle((x, y + 40, x + 170, y + 74), fill=GREEN)
