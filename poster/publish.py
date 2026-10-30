@@ -16,6 +16,8 @@ Usage:
   python poster/publish.py --dry-run    # show what would happen, call nothing
   python poster/publish.py --force 2026-10-27-fairfield-1959
                                         # publish one post now, even if late or early
+  python poster/publish.py --facebook-only 2026-10-30-fairfield-clocks-back
+                                        # send a post already on Instagram to the Facebook Page
 """
 from __future__ import annotations
 
@@ -230,11 +232,13 @@ def write_result(folder: Path, result: dict) -> None:
     (folder / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 
 
-def cross_post(folder: Path, post: dict, result: dict, now: dt.datetime, dry_run: bool) -> bool:
+def cross_post(folder: Path, post: dict, result: dict, now: dt.datetime, dry_run: bool,
+               ignore_late: bool = False) -> bool:
     """Posts an Instagram-published post to the Facebook Page. Returns True if result changed.
 
     Runs again on later runs while the Facebook side is still processing or hit a
     temporary error, and gives up after MAX_LATE_HOURS so a stale post never lands late.
+    ignore_late (--facebook-only) skips that cutoff for one post sent by hand.
     """
     done = result.get("facebook", {}).get("status") in ("published", "failed", "skipped")
     if not fb.enabled() or result.get("status") != "published" or done:
@@ -247,7 +251,7 @@ def cross_post(folder: Path, post: dict, result: dict, now: dt.datetime, dry_run
         return False
     fb_state = result.get("facebook", {})
     late_h = (now - dt.datetime.fromisoformat(result["published_at"])).total_seconds() / 3600
-    if late_h > MAX_LATE_HOURS:
+    if late_h > MAX_LATE_HOURS and not ignore_late:
         if not fb_state:
             return False  # posted before the Page was connected; leave it alone
         result["facebook"] = {"status": "failed", "checked_at": now.isoformat(),
@@ -282,11 +286,37 @@ def cross_post(folder: Path, post: dict, result: dict, now: dt.datetime, dry_run
     return True
 
 
+def facebook_only(folder: Path, dry_run: bool) -> int:
+    if not (folder / "result.json").exists():
+        print(f"No result.json in {folder.name}: it hasn't gone to Instagram, so there's nothing to send")
+        return 1
+    if not fb.enabled():
+        print("FB_PAGE_ID and FB_PAGE_TOKEN aren't both set, so Facebook is off. See SETUP.md, \"Facebook Page\".")
+        return 1
+    result = json.loads((folder / "result.json").read_text())
+    if result.get("status") != "published":
+        print(f"{folder.name} is {result.get('status')!r} on Instagram, not published; nothing to send")
+        return 1
+    if result.get("facebook", {}).get("status") == "published":
+        print(f"{folder.name} is already on Facebook: {result['facebook'].get('permalink', '')}")
+        return 0
+    result.pop("facebook", None)  # a by-hand send is a fresh try
+    now = dt.datetime.now(dt.timezone.utc)
+    if cross_post(folder, load_post(folder), result, now, dry_run, ignore_late=True):
+        write_result(folder, result)
+    return 0 if dry_run or result.get("facebook", {}).get("status") in ("published", "processing", "skipped") else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--force", metavar="FOLDER", help="publish this one post now")
+    ap.add_argument("--facebook-only", metavar="FOLDER",
+                    help="send a post already on Instagram to the Facebook Page; never touches Instagram")
     args = ap.parse_args()
+
+    if args.facebook_only:
+        return facebook_only(QUEUE_DIR / args.facebook_only, args.dry_run)
 
     global IG_USER_ID
     if not args.dry_run:

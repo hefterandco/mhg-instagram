@@ -16,6 +16,10 @@ on:
         description: "Post this queue folder right now (e.g. 2026-10-27-fairfield-1959). Leave blank for normal run."
         type: string
         default: ""
+      facebook_only:
+        description: "Send a post that's already on Instagram to the Facebook Page (e.g. 2026-10-30-fairfield-clocks-back). Never re-posts to Instagram."
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -46,16 +50,18 @@ jobs:
           EVENT: ${{ github.event_name }}
           DRY_RUN: ${{ inputs.dry_run }}
           FORCE: ${{ inputs.force }}
+          FACEBOOK_ONLY: ${{ inputs.facebook_only }}
         run: |
           ARGS=()
           if [ "$EVENT" = "workflow_dispatch" ]; then
             if [ "$DRY_RUN" = "true" ]; then ARGS+=(--dry-run); fi
             if [ -n "$FORCE" ]; then ARGS+=(--force "$FORCE"); fi
+            if [ -n "$FACEBOOK_ONLY" ]; then ARGS+=(--facebook-only "$FACEBOOK_ONLY"); fi
           fi
           python poster/publish.py "${ARGS[@]}"
 
       - name: Post a Story if one is due
-        if: always() && (github.event_name == 'schedule' || inputs.force == '')
+        if: always() && (github.event_name == 'schedule' || inputs.force == '' && inputs.facebook_only == '')
         env:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}

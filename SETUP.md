@@ -144,6 +144,7 @@ Optional, about 15 minutes, free. Once it's set up, every post and reel that goe
 
 From the next post on, `result.json` gets a `"facebook"` section with the Page post's link.
 - Add `"facebook": false` to a `post.json` to keep that one post off the Page.
+- Posts that went to Instagram before the Page was connected aren't sent automatically. To send one: **Actions › Post to Instagram › Run workflow**, uncheck **Dry run**, and put its folder name in **facebook_only**. It never re-posts to Instagram. With Dry run left checked it only confirms the Facebook secrets are set.
 - A Facebook problem never re-posts to Instagram. Temporary errors retry for up to `MAX_LATE_HOURS`; anything else is marked `"failed"` with the reason. Delete the `"facebook"` section from `result.json` and push to try again.
 - Facebook only takes reels from 3 to 90 seconds. Longer reels still post to Instagram; the Facebook side is marked failed.
 - The Page token stops working if you change your Facebook password or remove the app from the Page. Redo steps 2 to 5.
