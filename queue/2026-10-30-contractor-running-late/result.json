@@ -2,5 +2,10 @@
   "status": "published",
   "published_at": "2026-10-30T21:29:25.720985+00:00",
   "media_id": "17897751327420958",
-  "permalink": "https://www.instagram.com/reel/DfIjR9uFWoT/"
+  "permalink": "https://www.instagram.com/reel/DfIjR9uFWoT/",
+  "facebook": {
+    "status": "failed",
+    "checked_at": "2026-10-30T21:59:51.720743+00:00",
+    "reason": "Facebook POST 1419803117877096/video_reels: (#200) Subject does not have permission to post videos on this target"
+  }
 }
