@@ -12,4 +12,4 @@ Drop 1080×1920 JPEGs (9:16) in this folder and push. That's it.
 
 ## One-time story sets
 
-For a sequence that should play in order once (a holiday set, an announcement), put the frames in `stories/once/` named so they sort in order (`halloween-1.jpg`, `halloween-2.jpg`...). The next run posts all of them back to back, logs each in `history.json`, and never posts them again. They don't enter the rotation.
+For a sequence that should play in order once (a holiday set, an announcement), put the frames in `stories/once/` named so they sort in order (`halloween-1.jpg`, `halloween-2.jpg`...). The next run posts all of them one minute apart, logs each in `history.json`, and never posts them again. They don't enter the rotation.

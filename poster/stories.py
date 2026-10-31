@@ -7,8 +7,8 @@ first) and posts it as a Story. An image isn't repeated until at least
 min_days_between_repeats days have passed. Every post is logged in
 stories/history.json, so nothing is posted twice for the same time slot.
 
-Frames in stories/once/ are a one-time set: the next run posts all of them back to
-back, in filename order (1.jpg, 2.jpg...), so they play as a sequence. Each is logged
+Frames in stories/once/ are a one-time set: the next run posts all of them one
+minute apart, in filename order (1.jpg, 2.jpg...), so they play as a sequence. Each is logged
 and never posted again, and they never enter the rotation.
 
 If Instagram flags the account (spam or restricted), the rotation pauses itself
@@ -24,6 +24,7 @@ import argparse
 import datetime as dt
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -36,6 +37,8 @@ ONCE_DIR = STORIES_DIR / "once"
 PAUSED = STORIES_DIR / "PAUSED"
 # A slot more than this late is skipped, so a delayed run doesn't post a 9am Story at 4pm.
 MAX_LATE_HOURS = 2
+# Gap between frames of a one-time set.
+ONCE_GAP_SECONDS = 60
 # Account-level problems: keep going and Instagram may treat it as more spam.
 PAUSE_SUBCODES = {2207050, 2207051}
 
@@ -99,7 +102,7 @@ def post_story(url: str) -> str:
 
 
 def post_once(history: list[dict], dry_run: bool) -> int:
-    """Post every unposted frame in stories/once/ back to back. Stops at the first error."""
+    """Post every unposted frame in stories/once/, ONCE_GAP_SECONDS apart. Stops at the first error."""
     frames = once_images(history)
     if not frames:
         return 0
@@ -107,7 +110,9 @@ def post_once(history: list[dict], dry_run: bool) -> int:
         print("[dry-run] would post one-time stories: " + ", ".join(p.name for p in frames))
         return 0
     now = dt.datetime.now(dt.timezone.utc)
-    for p in frames:
+    for i, p in enumerate(frames):
+        if i:
+            time.sleep(ONCE_GAP_SECONDS)
         name = f"once/{p.name}"
         try:
             media_id = post_story(f"{base_url()}/stories/{name}")
