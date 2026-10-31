@@ -7,6 +7,10 @@ first) and posts it as a Story. An image isn't repeated until at least
 min_days_between_repeats days have passed. Every post is logged in
 stories/history.json, so nothing is posted twice for the same time slot.
 
+Frames in stories/once/ are a one-time set: the next run posts all of them back to
+back, in filename order (1.jpg, 2.jpg...), so they play as a sequence. Each is logged
+and never posted again, and they never enter the rotation.
+
 If Instagram flags the account (spam or restricted), the rotation pauses itself
 by writing stories/PAUSED. Delete that file to start it again.
 
@@ -28,6 +32,7 @@ from publish import ApiError, api, base_url, wait_until_ready  # noqa: E402
 from queue_check import LOCAL_TZ, STORIES_DIR, check_stories, load_story_config, story_images  # noqa: E402
 
 HISTORY = STORIES_DIR / "history.json"
+ONCE_DIR = STORIES_DIR / "once"
 PAUSED = STORIES_DIR / "PAUSED"
 # A slot more than this late is skipped, so a delayed run doesn't post a 9am Story at 4pm.
 MAX_LATE_HOURS = 2
@@ -78,6 +83,52 @@ def pick_image(history: list[dict], min_days: float, now: dt.datetime) -> Path |
     return min(ready, key=lambda p: last_used[p.name]) if ready else None
 
 
+def once_images(history: list[dict]) -> list[Path]:
+    """One-time frames in stories/once/ that haven't been published yet."""
+    if not ONCE_DIR.exists():
+        return []
+    done = {h["file"] for h in history if h.get("file") and h["status"] == "published"}
+    return sorted(p for p in ONCE_DIR.iterdir()
+                  if p.suffix.lower() in (".jpg", ".jpeg") and f"once/{p.name}" not in done)
+
+
+def post_story(url: str) -> str:
+    container = api("POST", f"{publish.IG_USER_ID}/media", {"media_type": "STORIES", "image_url": url})["id"]
+    wait_until_ready(container)
+    return api("POST", f"{publish.IG_USER_ID}/media_publish", {"creation_id": container})["id"]
+
+
+def post_once(history: list[dict], dry_run: bool) -> int:
+    """Post every unposted frame in stories/once/ back to back. Stops at the first error."""
+    frames = once_images(history)
+    if not frames:
+        return 0
+    if dry_run:
+        print("[dry-run] would post one-time stories: " + ", ".join(p.name for p in frames))
+        return 0
+    now = dt.datetime.now(dt.timezone.utc)
+    for p in frames:
+        name = f"once/{p.name}"
+        try:
+            media_id = post_story(f"{base_url()}/stories/{name}")
+        except ApiError as e:
+            if not e.permanent:
+                print(f"[error] one-time story {name}: {e} -- will retry next run")
+                return 1
+            print(f"[failed] one-time story {name}: {e}")
+            history.append({"slot": f"once {p.name}", "status": "failed", "file": name, "reason": str(e), "at": now.isoformat()})
+            if e.subcode in PAUSE_SUBCODES:
+                PAUSED.write_text(f"{now.isoformat()}: {e}\n")
+                print("[paused] Stories paused until stories/PAUSED is deleted")
+            save_history(history)
+            return 1
+        history.append({"slot": f"once {p.name}", "status": "published", "file": name, "media_id": media_id,
+                        "at": dt.datetime.now(dt.timezone.utc).isoformat()})
+        save_history(history)
+        print(f"[published] one-time story {name}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
@@ -92,13 +143,21 @@ def main() -> int:
     if problems:
         print("[skip] Fix stories/ first: " + "; ".join(problems))
         return 1
+    history = load_history()
+    if once_images(history) and not args.dry_run:
+        if not publish.IG_ACCESS_TOKEN:
+            print("IG_ACCESS_TOKEN is not set yet. Nothing posted. See SETUP.md.")
+            return 1
+        if not publish.IG_USER_ID:
+            publish.IG_USER_ID = str(api("GET", "me", {"fields": "user_id"})["user_id"])
+    if post_once(history, args.dry_run):
+        return 1
     if not story_images():
         return 0
     cfg = load_story_config()
     times, min_days = cfg.get("times", []), cfg.get("min_days_between_repeats", 7)
 
     now = dt.datetime.now(dt.timezone.utc)
-    history = load_history()
     slot, skipped = due_slot(times, history, now)
     for s in skipped:
         print(f"[missed] story slot {s}: too late, skipping")
@@ -125,10 +184,7 @@ def main() -> int:
     if not publish.IG_USER_ID:
         publish.IG_USER_ID = str(api("GET", "me", {"fields": "user_id"})["user_id"])
     try:
-        container = api("POST", f"{publish.IG_USER_ID}/media",
-                        {"media_type": "STORIES", "image_url": f"{base_url()}/stories/{image.name}"})["id"]
-        wait_until_ready(container)
-        media_id = api("POST", f"{publish.IG_USER_ID}/media_publish", {"creation_id": container})["id"]
+        media_id = post_story(f"{base_url()}/stories/{image.name}")
     except ApiError as e:
         if not e.permanent:
             print(f"[error] story slot {slot}: {e} -- will retry next run")

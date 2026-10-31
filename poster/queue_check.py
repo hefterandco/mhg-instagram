@@ -217,11 +217,14 @@ def check_stories() -> list[str]:
     days = cfg.get("min_days_between_repeats", 7)
     if not isinstance(days, (int, float)) or days < 0:
         problems.append("stories/config.json: min_days_between_repeats must be a number of days")
-    for p in story_images():
-        found, size = check_jpeg(p, f"stories/{p.name}")
+    once = STORIES_DIR / "once"
+    once_images = sorted(p for p in once.iterdir() if p.suffix.lower() in (".jpg", ".jpeg")) if once.exists() else []
+    for p in story_images() + once_images:
+        rel = p.relative_to(STORIES_DIR.parent).as_posix()
+        found, size = check_jpeg(p, rel)
         problems += found
         if size and abs(size[0] / size[1] - STORY_RATIO) > 0.02:
-            problems.append(f"stories/{p.name} is {size[0]}x{size[1]}; stories should be 9:16, e.g. 1080x1920")
+            problems.append(f"{rel} is {size[0]}x{size[1]}; stories should be 9:16, e.g. 1080x1920")
     others = [p.name for p in STORIES_DIR.iterdir()
               if p.is_file() and p.suffix.lower() not in (".jpg", ".jpeg", ".json", ".md") and p.name != "PAUSED"]
     if others:
