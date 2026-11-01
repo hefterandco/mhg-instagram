@@ -1,0 +1,45 @@
+{
+ "days": {
+  "2026-10-29": {
+   "accounts_engaged": 0,
+   "comments": 0,
+   "likes": 0,
+   "profile_links_taps": 0,
+   "reach": 2,
+   "saves": 0,
+   "shares": 0,
+   "total_interactions": 0,
+   "views": 15
+  },
+  "2026-10-30": {
+   "accounts_engaged": 2,
+   "comments": 0,
+   "likes": 2,
+   "profile_links_taps": 0,
+   "reach": 118,
+   "saves": 0,
+   "shares": 0,
+   "total_interactions": 2,
+   "views": 169
+  },
+  "2026-10-31": {
+   "accounts_engaged": 1,
+   "comments": 0,
+   "likes": 1,
+   "profile_links_taps": 0,
+   "reach": 45,
+   "saves": 0,
+   "shares": 0,
+   "total_interactions": 1,
+   "views": 82
+  }
+ },
+ "followers": {
+  "2026-11-01": 4
+ },
+ "insights_permission": true,
+ "media_count": {
+  "2026-11-01": 10
+ },
+ "updated_at": "2026-11-01T20:58:10.264628+00:00"
+}
