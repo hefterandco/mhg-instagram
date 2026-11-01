@@ -36,7 +36,7 @@ Nothing else. No paid services. Meta's app secret is **not** needed for this.
 1. In the app's left menu: **Instagram › API setup with Instagram business login**.
 2. Under **Generate access tokens**, click **Add account** and log in as the My House Guardian Instagram.
 3. Click **Generate token** next to the account, approve the permissions, and copy the token.
-   - Make sure the permissions include **instagram_business_basic** and **instagram_business_content_publish**.
+   - Make sure the permissions include **instagram_business_basic**, **instagram_business_content_publish** and **instagram_business_manage_insights** (the last one lets the insights tracker read reach and views).
    - This token is the long-lived kind, good for 60 days.
 4. In GitHub: repo › **Settings › Secrets and variables › Actions › New repository secret**
    Name `IG_ACCESS_TOKEN`, value: the token.
@@ -148,6 +148,24 @@ From the next post on, `result.json` gets a `"facebook"` section with the Page p
 - A Facebook problem never re-posts to Instagram. Temporary errors retry for up to `MAX_LATE_HOURS`; anything else is marked `"failed"` with the reason. Delete the `"facebook"` section from `result.json` and push to try again.
 - Facebook only takes reels from 3 to 90 seconds. Longer reels still post to Instagram; the Facebook side is marked failed.
 - The Page token stops working if you change your Facebook password or remove the app from the Page. Redo steps 2 to 5.
+
+## Insights
+The **Collect Instagram insights** workflow reads results back four times a day and saves them in `insights/` (see `insights/README.md`). No new secrets: it uses the same `IG_ACCESS_TOKEN`.
+
+It needs one extra permission on the token, **instagram_business_manage_insights**. If your token was made before Nov 1, 2026, it doesn't have it. One-time fix:
+1. Redo step 4 (**Generate token**), and this time make sure **instagram_business_manage_insights** is ticked along with the other two.
+2. Paste the new token over the `IG_ACCESS_TOKEN` secret. The Monday refresh keeps it alive from there, permissions included.
+3. **Actions › Collect Instagram insights › Run workflow.** The run log should not show the "can't read insights yet" warning.
+
+Until then it still records followers, likes and comments; reach, views, saves and shares stay blank.
+
+Things to know:
+- Numbers lag up to 48 hours, so a post's first two days are still settling.
+- Some numbers (follows from a post, for example) don't come back while the account has under 100 followers. They show as blank, not zero.
+- Story numbers vanish after 24 hours. Each Story's last reading before then is what's kept.
+- This repo is public, so `insights/` is public too.
+
+To see the dashboard: `python tools/build_dashboard.py`, then open the file it prints.
 
 ## When something goes wrong
 - GitHub emails you when a run fails. The log says why in plain words.

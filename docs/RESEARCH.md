@@ -152,6 +152,12 @@ Instagram's in-app setting to automatically share posts to a linked Facebook Pag
   - Some metrics are unavailable on accounts with **fewer than 100 followers** ([Insights overview](https://developers.facebook.com/documentation/instagram-platform/insights.md)).
   - Insights webhooks aren't supported with Instagram Login, so we'd have to poll.
 
+### Instagram account ([IG User Insights](https://developers.facebook.com/docs/instagram-platform/api-reference/instagram-user/insights), checked Nov 1, 2026)
+- **Call:** `GET https://graph.instagram.com/v26.0/<IG_USER_ID>/insights?metric=<list>&metric_type=total_value&period=day&since=<unix>&until=<unix>`. Same two permissions as media insights.
+- **Metrics (total_value):** `accounts_engaged`, `comments`, `follows_and_unfollows`, `likes`, `profile_links_taps`, `reach`, `replies`, `reposts`, `saves`, `shares`, `total_interactions`, `views`. Only `reach` (and the dead `impressions`) also support `time_series`.
+- Without `since`/`until` it looks back 24 hours.
+- `follower_count`, `online_followers`, `follows_and_unfollows` and `follower_demographics` aren't returned under 100 followers. So the tracker takes a daily `followers_count` snapshot from `GET /me` (basic permission) for growth instead.
+
 ### Facebook Page ([Graph API Insights](https://developers.facebook.com/docs/graph-api/reference/insights))
 - **Needs:** `read_insights` and `pages_read_engagement`, plus the `ANALYZE` task on the Page.
 - **"Page Insights data is only available on Pages with 100 or more likes."**

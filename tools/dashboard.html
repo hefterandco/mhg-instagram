@@ -1,0 +1,273 @@
+<title>MHG Instagram Results</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..700,0..100,0..1&family=Nunito+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one calm column; summary tiles, then two charts, then the post ledger. Brand: My House Guardian. */
+:root {
+  --bg: #FBF4E8;        /* Cream */
+  --panel: #FFFDF8;
+  --ink: #2C3F31;       /* deep Green, for body text */
+  --head: #3A5240;      /* Green */
+  --muted: #6B6157;     /* Stone */
+  --line: #E8DFCD;      /* Line */
+  --mark: #3A5240;      /* chart marks */
+  --mark-soft: rgba(58, 82, 64, 0.12);
+  --accent: #C86B43;    /* Clay: rules and large shapes only */
+  --good: #2F7A4A;
+  --warn-bg: #FBE9DC;
+  --warn-ink: #7A3A1C;
+  --chip-reel: #E6EEE7;
+  --chip-img: #F3E6D6;
+  --font-display: Fraunces, Georgia, serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18221B; --panel: #1F2B23; --ink: #EDE6D8; --head: #F3EBDD; --muted: #B3A897;
+    --line: #34443A; --mark: #A9C7AE; --mark-soft: rgba(169, 199, 174, 0.14); --accent: #E0956A;
+    --good: #8FD0A3; --warn-bg: #3A2A1F; --warn-ink: #F2C3A4; --chip-reel: #2C3D31; --chip-img: #3A3126;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18221B; --panel: #1F2B23; --ink: #EDE6D8; --head: #F3EBDD; --muted: #B3A897;
+  --line: #34443A; --mark: #A9C7AE; --mark-soft: rgba(169, 199, 174, 0.14); --accent: #E0956A;
+  --good: #8FD0A3; --warn-bg: #3A2A1F; --warn-ink: #F2C3A4; --chip-reel: #2C3D31; --chip-img: #3A3126;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2 { font-family: var(--font-display); font-variation-settings: 'SOFT' 100, 'WONK' 1; color: var(--head); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(28px, 4.5vw, 40px); font-weight: 600; line-height: 1.1; }
+h2 { font-size: 21px; font-weight: 600; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 24px; padding-bottom: 18px; border-bottom: 2px solid var(--accent); }
+.sub { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+.updated { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.notice { background: var(--warn-bg); color: var(--warn-ink); border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.notice strong { font-weight: 700; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile .label { font-size: 13px; color: var(--muted); font-weight: 600; }
+.tile .value { font-family: var(--font-display); font-variation-settings: 'SOFT' 100, 'WONK' 0; font-size: 32px; font-weight: 600; color: var(--head); font-variant-numeric: tabular-nums; line-height: 1.15; }
+.tile .note { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tile .note.up { color: var(--good); font-weight: 600; }
+section { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.section-head p { margin: 0; color: var(--muted); font-size: 13px; }
+.charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .charts { grid-template-columns: 1fr; } }
+.chart { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 14px 8px; position: relative; min-width: 0; }
+.chart h3 { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--head); }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .empty { color: var(--muted); font-size: 14px; padding: 36px 8px; text-align: center; }
+.axis text { fill: var(--muted); font-size: 11px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.grid line { stroke: var(--line); stroke-width: 1; }
+.tip { position: absolute; pointer-events: none; background: var(--head); color: var(--bg); font-size: 12px; padding: 6px 9px; border-radius: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; transform: translate(-50%, -110%); }
+.compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 560px) { .compare { grid-template-columns: 1fr; } }
+.kind { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; align-items: baseline; }
+.kind h3 { grid-column: 1 / -1; margin: 0 0 4px; font-size: 15px; font-weight: 700; color: var(--head); }
+.kind dt { color: var(--muted); font-size: 13px; }
+.kind dd { margin: 0; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+tbody tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; color: var(--muted); font-weight: 700; background: var(--panel); position: sticky; top: 0; }
+th button { all: unset; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
+th button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+th button[aria-sort="descending"]::after { content: "↓"; }
+th button[aria-sort="ascending"]::after { content: "↑"; }
+td.name { white-space: normal; min-width: 220px; max-width: 360px; }
+td.name a { color: var(--head); font-weight: 600; text-decoration: none; }
+td.name a:hover { text-decoration: underline; }
+td .cap { display: block; color: var(--muted); font-size: 12px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: var(--ink); }
+.chip.reel { background: var(--chip-reel); }
+.chip.image, .chip.carousel { background: var(--chip-img); }
+.chip.settling { background: transparent; border: 1px dashed var(--muted); color: var(--muted); font-weight: 600; margin-left: 6px; }
+.blank { color: var(--muted); }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+footer p { margin: 0 0 6px; max-width: 70ch; }
+@media (prefers-reduced-motion: no-preference) { .bar { transition: opacity .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Instagram Results</h1>
+      <p class="sub" id="handle">My House Guardian</p>
+    </div>
+    <div class="updated" id="updated"></div>
+  </header>
+
+  <div class="notice" id="sample" hidden><strong>Sample numbers.</strong> This preview uses made-up data to show the layout. It is not your account.</div>
+  <div class="notice" id="noperm" hidden><strong>Reach and views are blank for now.</strong> The Instagram token can't read insights yet. Regenerate it with <em>instagram_business_manage_insights</em> ticked (SETUP.md, “Insights”). Followers, likes and comments are already being tracked.</div>
+
+  <div class="tiles" id="tiles"></div>
+
+  <section>
+    <div class="section-head"><h2>Over time</h2><p>Followers are counted each evening. Account reach is for each full day, Connecticut time.</p></div>
+    <div class="charts">
+      <div class="chart" id="followers-chart"><h3>Followers</h3></div>
+      <div class="chart" id="reach-chart"><h3>Accounts reached per day</h3></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Reels vs graphics</h2><p>Average per post, posts older than 48 hours only.</p></div>
+    <div class="compare" id="compare"></div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Every post</h2><p>Click a column to sort. Dashed tag: under 48 hours old, numbers still coming in.</p></div>
+    <div class="table-wrap"><table id="posts"></table></div>
+  </section>
+
+  <section id="stories-section">
+    <div class="section-head"><h2>Stories</h2><p>Last reading before the Story expired.</p></div>
+    <div class="table-wrap"><table id="stories"></table></div>
+  </section>
+
+  <footer>
+    <p>A dash means Instagram didn't give a number: not available yet, not offered for that kind of post, or held back while the account is under 100 followers. It isn't a zero.</p>
+    <p>Collected by the “Collect Instagram insights” workflow in mhg-instagram. Rebuild this page with <code>python tools/build_dashboard.py</code>.</p>
+  </footer>
+</div>
+
+<script id="data" type="application/json">/*DATA*/</script>
+<script>
+(function () {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const A = D.account || {}, P = D.posts || {}, S = D.stories || {};
+  const fmt = n => (n === null || n === undefined) ? "–" : Number(n).toLocaleString("en-US");
+  const dfmt = iso => new Date(iso + (iso.length === 10 ? "T12:00:00" : "")).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  document.getElementById("sample").hidden = !A.sample;
+  document.getElementById("noperm").hidden = A.insights_permission !== false;
+  if (A.updated_at) document.getElementById("updated").textContent = "Updated " + new Date(A.updated_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" }) + " ET";
+
+  // ---- tiles
+  const fDates = Object.keys(A.followers || {}).sort();
+  const fNow = fDates.length ? A.followers[fDates[fDates.length - 1]] : null;
+  const weekAgo = (() => { const t = new Date(); t.setDate(t.getDate() - 7); return t.toISOString().slice(0, 10); })();
+  const fPast = fDates.filter(d => d <= weekAgo).pop();
+  const fDelta = (fNow !== null && fPast) ? fNow - A.followers[fPast] : null;
+  const days = A.days || {};
+  const dKeys = Object.keys(days).sort();
+  const last7 = dKeys.slice(-7);
+  const sum7 = m => { const v = last7.map(d => days[d][m]).filter(x => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+  const tiles = [
+    { label: "Followers", value: fmt(fNow), note: fDelta === null ? "Change shows after a week of readings" : (fDelta >= 0 ? "+" : "") + fDelta + " in 7 days", up: fDelta > 0 },
+    { label: "Reached, last 7 days", value: fmt(sum7("reach")), note: "Sum of daily accounts reached" },
+    { label: "Views, last 7 days", value: fmt(sum7("views")), note: "Posts, Reels and Stories" },
+    { label: "Interactions, last 7 days", value: fmt(sum7("total_interactions")), note: "Likes, comments, saves, shares" },
+  ];
+  const tilesEl = document.getElementById("tiles");
+  tiles.forEach(t => { const d = el("div", "tile"); d.append(el("span", "label", esc(t.label)), el("span", "value", t.value), el("span", "note" + (t.up ? " up" : ""), esc(t.note))); tilesEl.append(d); });
+
+  // ---- charts (single series each: no legend needed; title names it)
+  function chart(host, points, type, emptyMsg) {
+    if (points.length < 2) { host.append(el("div", "empty", esc(emptyMsg))); return; }
+    const W = 480, H = 200, L = 40, R = 10, T = 10, B = 26;
+    const vals = points.map(p => p.v);
+    let lo = type === "bar" ? 0 : Math.min(...vals), hi = Math.max(...vals);
+    if (hi === lo) { hi = lo + 1; if (type !== "bar") lo = Math.max(0, lo - 1); }
+    const step = niceStep((hi - lo) / 4); lo = Math.floor(lo / step) * step; hi = Math.ceil(hi / step) * step;
+    const n = points.length, iw = W - L - R, ih = H - T - B;
+    const x = i => type === "bar" ? L + (i + 0.5) * iw / n : L + i * iw / (n - 1);
+    const y = v => T + ih - (v - lo) / (hi - lo) * ih;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(host.querySelector("h3").textContent)}">`;
+    s += `<g class="grid">`; for (let v = lo; v <= hi + 1e-9; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/>`; s += `</g><g class="axis">`;
+    for (let v = lo; v <= hi + 1e-9; v += step) s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${fmt(Math.round(v))}</text>`;
+    const every = Math.max(1, Math.ceil(n / 5));
+    points.forEach((p, i) => { if (i % every === 0 || i === n - 1) s += `<text x="${x(i)}" y="${H - 6}" text-anchor="middle">${dfmt(p.d)}</text>`; });
+    s += `</g>`;
+    if (type === "bar") {
+      const bw = Math.max(3, Math.min(22, iw / n - 2));
+      points.forEach((p, i) => { const h = Math.max(0, y(lo) - y(p.v)); s += `<path class="bar" fill="var(--mark)" d="${barPath(x(i) - bw / 2, y(lo), bw, h)}"/>`; });
+    } else {
+      const line = points.map((p, i) => `${i ? "L" : "M"}${x(i)},${y(p.v)}`).join("");
+      s += `<path d="${line}L${x(n - 1)},${y(lo)}L${x(0)},${y(lo)}Z" fill="var(--mark-soft)"/>`;
+      s += `<path d="${line}" fill="none" stroke="var(--mark)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      s += `<circle cx="${x(n - 1)}" cy="${y(points[n - 1].v)}" r="4.5" fill="var(--mark)" stroke="var(--panel)" stroke-width="2"/>`;
+    }
+    s += `<line class="cross" x1="0" x2="0" y1="${T}" y2="${T + ih}" stroke="var(--muted)" stroke-dasharray="3 3" visibility="hidden"/>`;
+    s += `<rect x="${L}" y="${T}" width="${iw}" height="${ih}" fill="transparent" class="hit"/></svg>`;
+    host.insertAdjacentHTML("beforeend", s);
+    const svg = host.querySelector("svg"), hit = svg.querySelector(".hit"), cross = svg.querySelector(".cross");
+    const tip = el("div", "tip"); tip.hidden = true; host.append(tip);
+    function show(ev) {
+      const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+      let i = type === "bar" ? Math.floor((sx - L) / (iw / n)) : Math.round((sx - L) / (iw / (n - 1)));
+      i = Math.max(0, Math.min(n - 1, i));
+      cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("visibility", "visible");
+      tip.hidden = false; tip.textContent = `${dfmt(points[i].d)}: ${fmt(points[i].v)}`;
+      const hr = host.getBoundingClientRect();
+      tip.style.left = (r.left - hr.left + x(i) * r.width / W) + "px"; tip.style.top = (r.top - hr.top + y(points[i].v) * r.height / H) + "px";
+    }
+    hit.addEventListener("pointermove", show); hit.addEventListener("pointerdown", show);
+    hit.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); });
+  }
+  function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw || 1))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+  function barPath(x, base, w, h) { const r = Math.min(4, w / 2, h); return `M${x},${base}V${base - h + r}Q${x},${base - h} ${x + r},${base - h}H${x + w - r}Q${x + w},${base - h} ${x + w},${base - h + r}V${base}Z`; }
+
+  chart(document.getElementById("followers-chart"), fDates.filter(d => A.followers[d] !== null).map(d => ({ d, v: A.followers[d] })), "line", "The growth line starts after a second day of readings.");
+  chart(document.getElementById("reach-chart"), dKeys.slice(-28).filter(d => days[d].reach !== null && days[d].reach !== undefined).map(d => ({ d, v: days[d].reach })), "bar",
+    A.insights_permission === false ? "Waiting on the insights permission." : "Daily reach fills in after the first two full days.");
+
+  // ---- posts
+  const posts = Object.entries(P).map(([id, p]) => ({ id, ...p, m: p.metrics || {} }));
+  const val = (p, k) => k === "likes" ? (p.m.likes ?? p.like_count) : k === "comments" ? (p.m.comments ?? p.comments_count) : p.m[k];
+  const label = p => p.folder ? p.folder.replace(/^\d{4}-\d{2}-\d{2}-/, "").replace(/-/g, " ") : (p.caption_start || "Untitled post");
+  const kindName = { reel: "Reel", image: "Graphic", carousel: "Carousel" };
+
+  // reels vs graphics
+  const cmp = document.getElementById("compare");
+  [["reel", "Reels"], ["graphic", "Graphics and carousels"]].forEach(([k, title]) => {
+    const group = posts.filter(p => !p.settling && (k === "reel" ? p.kind === "reel" : p.kind !== "reel"));
+    const avg = key => { const v = group.map(p => val(p, key)).filter(x => x !== null && x !== undefined); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; };
+    const d = el("dl", "kind");
+    d.append(el("h3", "", `${title} <span class="blank">· ${group.length} post${group.length === 1 ? "" : "s"}</span>`));
+    [["Reach", "reach"], ["Views", "views"], ["Likes", "likes"], ["Saves", "saved"], ["Shares", "shares"]].forEach(([l, key]) => { d.append(el("dt", "", l), el("dd", "", fmt(avg(key)))); });
+    cmp.append(d);
+  });
+
+  const cols = [
+    { k: "posted_at", t: "Posted", f: p => dfmt(p.posted_at), sv: p => p.posted_at },
+    { k: "name", t: "Post", f: p => `<a href="${esc(p.permalink)}" target="_blank" rel="noopener">${esc(label(p))}</a>${p.folder ? `<span class="cap">${esc(p.caption_start)}</span>` : ""}`, sv: p => label(p) },
+    { k: "kind", t: "Type", f: p => `<span class="chip ${esc(p.kind)}">${kindName[p.kind] || esc(p.kind)}</span>${p.settling ? '<span class="chip settling">settling</span>' : ""}`, sv: p => p.kind },
+    ...[["reach", "Reach"], ["views", "Views"], ["likes", "Likes"], ["comments", "Comments"], ["saved", "Saves"], ["shares", "Shares"], ["follows", "Follows"]]
+      .map(([k, t]) => ({ k, t, num: true, f: p => { const v = val(p, k); return v === null || v === undefined ? '<span class="blank">–</span>' : fmt(v); }, sv: p => val(p, k) })),
+  ];
+  let sortKey = "posted_at", dir = -1;
+  const table = document.getElementById("posts");
+  function renderPosts() {
+    const c = cols.find(c => c.k === sortKey);
+    const rows = posts.slice().sort((a, b) => { const x = c.sv(a), y = c.sv(b); if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (x > y ? 1 : x < y ? -1 : 0) * dir; });
+    table.innerHTML = `<thead><tr>${cols.map(c => `<th scope="col"><button type="button" data-k="${c.k}" ${c.k === sortKey ? `aria-sort="${dir < 0 ? "descending" : "ascending"}"` : ""}>${c.t}</button></th>`).join("")}</tr></thead>`
+      + `<tbody>${rows.length ? rows.map(p => `<tr>${cols.map(c => `<td${c.k === "name" ? ' class="name"' : ""}>${c.f(p)}</td>`).join("")}</tr>`).join("") : `<tr><td colspan="${cols.length}" class="blank">No posts collected yet. The first workflow run fills this in.</td></tr>`}</tbody>`;
+    table.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => { const k = b.dataset.k; if (k === sortKey) dir = -dir; else { sortKey = k; dir = cols.find(c => c.k === k).num ? -1 : 1; } renderPosts(); table.querySelector(`button[data-k="${k}"]`).focus(); }));
+  }
+  renderPosts();
+
+  // ---- stories
+  const stories = Object.values(S).sort((a, b) => b.posted_at.localeCompare(a.posted_at));
+  const st = document.getElementById("stories");
+  const sCols = [["reach", "Reach"], ["views", "Views"], ["shares", "Shares"], ["profile_visits", "Profile visits"], ["follows", "Follows"]];
+  const sName = s => (s.file || "Story").replace(/^.*\//, "").replace(/\.(jpe?g|png)$/i, "");
+  st.innerHTML = `<thead><tr><th scope="col">Posted</th><th scope="col">Image</th>${sCols.map(([, t]) => `<th scope="col">${t}</th>`).join("")}</tr></thead><tbody>`
+    + (stories.length ? stories.map(s => `<tr><td>${new Date(s.posted_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })}</td><td>${esc(sName(s))}</td>${sCols.map(([k]) => { const v = (s.metrics || {})[k]; return `<td>${v === null || v === undefined ? '<span class="blank">–</span>' : fmt(v)}</td>`; }).join("")}</tr>`).join("")
+      : `<tr><td colspan="${sCols.length + 2}" class="blank">No Stories caught yet. Each run records the Stories that are live at the time.</td></tr>`) + `</tbody>`;
+})();
+</script>
