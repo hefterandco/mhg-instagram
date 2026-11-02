@@ -6,7 +6,9 @@ Writes three files under insights/ (see insights/README.md):
   posts.json    every feed post and Reel on the account, with its latest numbers
   stories.json  every Story caught while it was live (Meta deletes Story numbers after 24h)
 
-Runs from the "Collect Instagram insights" workflow four times a day. Read-only:
+Runs about four times a day: the poster workflow calls it with --if-older-than 5.5
+on its 15-minute runs (GitHub's own schedule fires unreliably for this repo), and the
+"Collect Instagram insights" workflow can also run it by hand or on its own schedule. Read-only:
 it never posts, edits or deletes anything on Instagram.
 
 Needs the token to include instagram_business_manage_insights (SETUP.md,
@@ -238,7 +240,16 @@ def collect_account(now: dt.datetime, account: dict, can_insight: bool) -> tuple
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--if-older-than", type=float, metavar="HOURS",
+                    help="skip unless the last collection is at least this many hours old")
     args = ap.parse_args()
+    if args.if_older_than:
+        last = load("account.json", {}).get("updated_at")
+        if last:
+            age = (now_utc() - dt.datetime.fromisoformat(last)).total_seconds() / 3600
+            if age < args.if_older_than:
+                print(f"Insights collected {age:.1f}h ago; next collection after {args.if_older_than}h.")
+                return 0
     if not publish.IG_ACCESS_TOKEN:
         sys.exit("Set IG_ACCESS_TOKEN first (SETUP.md step 4).")
 
