@@ -150,7 +150,7 @@ From the next post on, `result.json` gets a `"facebook"` section with the Page p
 - The Page token stops working if you change your Facebook password or remove the app from the Page. Redo steps 2 to 5.
 
 ## Insights
-The **Collect Instagram insights** workflow reads results back four times a day and saves them in `insights/` (see `insights/README.md`). No new secrets: it uses the same `IG_ACCESS_TOKEN`.
+The poster workflow reads results back about once an hour (the **Collect Instagram insights** workflow can also run it by hand) and saves them in `insights/` (see `insights/README.md`). No new secrets: it uses the same `IG_ACCESS_TOKEN`.
 
 It needs one extra permission on the token, **instagram_business_manage_insights**. If your token was made before Nov 1, 2026, it doesn't have it. One-time fix:
 1. Redo step 4 (**Generate token**), and this time make sure **instagram_business_manage_insights** is ticked along with the other two.
@@ -165,7 +165,9 @@ Things to know:
 - Story numbers vanish after 24 hours. Each Story's last reading before then is what's kept.
 - This repo is public, so `insights/` is public too.
 
-To see the dashboard: `python tools/build_dashboard.py`, then open the file it prints.
+**Live dashboard:** https://hefterandco.github.io/mhg-instagram/ (GitHub Pages, set to **Settings › Pages › Deploy from a branch › main › /docs**). It reads `insights/` each time it opens, so it's never more than about an hour behind. The page itself is `docs/index.html`.
+
+For a snapshot file instead: `python tools/build_dashboard.py`, then open the file it prints.
 
 ## When something goes wrong
 - GitHub emails you when a run fails. The log says why in plain words.

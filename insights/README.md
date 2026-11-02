@@ -1,6 +1,6 @@
 # insights/
 
-Written by `poster/insights.py` (the **Collect Instagram insights** workflow, four times a day). Don't edit these by hand; the next run overwrites them.
+Written by `poster/insights.py` (from the poster workflow, about once an hour). Don't edit these by hand; the next run overwrites them.
 
 | File | What's in it |
 |---|---|
@@ -10,6 +10,6 @@ Written by `poster/insights.py` (the **Collect Instagram insights** workflow, fo
 
 A `null` means Meta didn't give a number (not available yet, not available for this kind of post, or the account is under 100 followers). It is not a zero.
 
-To see it as a dashboard, run `python tools/build_dashboard.py` and open the file it writes.
+Live dashboard: https://hefterandco.github.io/mhg-instagram/ (reads these files each time it opens).
 
 This repo is public, so these numbers are public too.

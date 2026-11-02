@@ -139,14 +139,34 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
 
   <footer>
     <p>A dash means Instagram didn't give a number: not available yet, not offered for that kind of post, or held back while the account is under 100 followers. It isn't a zero.</p>
-    <p>Collected by the “Collect Instagram insights” workflow in mhg-instagram. Rebuild this page with <code>python tools/build_dashboard.py</code>.</p>
+    <p>Collected about once an hour by the poster workflow in mhg-instagram. This page loads the latest collection when it opens and checks again every 10 minutes.</p>
   </footer>
 </div>
 
 <script id="data" type="application/json">/*DATA*/</script>
 <script>
 (function () {
-  const D = JSON.parse(document.getElementById("data").textContent);
+  // Two ways to get numbers: baked in by tools/build_dashboard.py, or (on GitHub Pages)
+  // read live from the repo's insights/ folder each time the page opens.
+  const RAW = "https://raw.githubusercontent.com/hefterandco/mhg-instagram/main/insights/";
+  const blob = document.getElementById("data").textContent.trim();
+  const live = blob === "/*DATA*/";
+  const getJSON = name => fetch(RAW + name + ".json?t=" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.json() : {});
+
+  if (!live) { render(JSON.parse(blob)); return; }
+  const updated = document.getElementById("updated");
+  updated.textContent = "Loading latest numbers…";
+  Promise.all(["account", "posts", "stories"].map(getJSON))
+    .then(([account, posts, stories]) => {
+      render({ account, posts, stories });
+      // Check for a newer collection every 10 minutes and when the tab comes back into view.
+      const check = () => getJSON("account").then(a => { if (a.updated_at && a.updated_at !== account.updated_at) location.reload(); }).catch(() => {});
+      setInterval(check, 10 * 60 * 1000);
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
+    })
+    .catch(() => { updated.textContent = "Couldn't load the numbers. Check your connection and refresh."; });
+
+  function render(D) {
   const A = D.account || {}, P = D.posts || {}, S = D.stories || {};
   const fmt = n => (n === null || n === undefined) ? "–" : Number(n).toLocaleString("en-US");
   const dfmt = iso => new Date(iso + (iso.length === 10 ? "T12:00:00" : "")).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
@@ -269,5 +289,7 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
   st.innerHTML = `<thead><tr><th scope="col">Posted</th><th scope="col">Image</th>${sCols.map(([, t]) => `<th scope="col">${t}</th>`).join("")}</tr></thead><tbody>`
     + (stories.length ? stories.map(s => `<tr><td>${new Date(s.posted_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })}</td><td>${esc(sName(s))}</td>${sCols.map(([k]) => { const v = (s.metrics || {})[k]; return `<td>${v === null || v === undefined ? '<span class="blank">–</span>' : fmt(v)}</td>`; }).join("")}</tr>`).join("")
       : `<tr><td colspan="${sCols.length + 2}" class="blank">No Stories caught yet. Each run records the Stories that are live at the time.</td></tr>`) + `</tbody>`;
+
+  }
 })();
 </script>

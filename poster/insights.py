@@ -6,7 +6,7 @@ Writes three files under insights/ (see insights/README.md):
   posts.json    every feed post and Reel on the account, with its latest numbers
   stories.json  every Story caught while it was live (Meta deletes Story numbers after 24h)
 
-Runs about four times a day: the poster workflow calls it with --if-older-than 5.5
+Runs about once an hour: the poster workflow calls it with --if-older-than 0.9
 on its 15-minute runs (GitHub's own schedule fires unreliably for this repo), and the
 "Collect Instagram insights" workflow can also run it by hand or on its own schedule. Read-only:
 it never posts, edits or deletes anything on Instagram.
