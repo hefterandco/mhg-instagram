@@ -13,3 +13,7 @@ Drop 1080×1920 JPEGs (9:16) in this folder and push. That's it.
 ## One-time story sets
 
 For a sequence that should play in order once (a holiday set, an announcement), put the frames in `stories/once/` named so they sort in order (`halloween-1.jpg`, `halloween-2.jpg`...). The next run posts all of them one minute apart, logs each in `history.json`, and never posts them again. They don't enter the rotation.
+
+## Blog Stories (posted by hand)
+
+`stories/blog/` holds a Story card for each blog post on myhouseguardian.com, made by `tools/blog_story.py` (a scheduled Claude routine runs it Mon/Thu/Sat). The poster never posts these: the API can't add link stickers, so post the card from your phone and drop a link sticker in the empty space under "Read it here". `seen.json` lists the posts that already have a card.
