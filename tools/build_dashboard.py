@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """Builds the Instagram results dashboard from insights/ into one self-contained HTML file.
 
-The live version is docs/index.html on GitHub Pages, which reads insights/ itself;
-this script bakes a snapshot for sharing or offline use.
-
   git pull && python tools/build_dashboard.py            # writes and prints the file path
   python tools/build_dashboard.py --out ~/Desktop/ig.html
 
@@ -18,7 +15,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TEMPLATE = ROOT / "docs" / "index.html"  # also the live GitHub Pages dashboard
+TEMPLATE = Path(__file__).resolve().parent / "dashboard.html"
 
 
 def main() -> None:

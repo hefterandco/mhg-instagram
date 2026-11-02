@@ -57,7 +57,7 @@ The real problems are reliability edge cases that can **double-post** or **silen
 
 ### Medium: more code, same API, no new services
 8. **Double-post guard (W2).** If `media_publish` errors or times out, check the account's most recent media (`GET /me/media?fields=caption,timestamp`) for a matching caption from the last few minutes before giving up. If it's there, record it as published.
-9. **Insights (M1).** ✅ Built Nov 1, 2026 (`poster/insights.py`, `insights/`, `tools/build_dashboard.py`). Changed from the plan: it runs about hourly instead of weekly, with a live dashboard on GitHub Pages (`docs/index.html`), so Story numbers are caught before they vanish at 24 hours, and it writes to `insights/` rather than into each queue folder, so it never touches files the poster commits. Original plan:
+9. **Insights (M1).** ✅ Built Nov 1, 2026 (`poster/insights.py`, `insights/`, `tools/build_dashboard.py`). Changed from the plan: it runs four times a day instead of weekly, so Story numbers are caught before they vanish at 24 hours, and it writes to `insights/` rather than into each queue folder, so it never touches files the poster commits. Original plan:
    - A new `poster/insights.py` and a weekly workflow write `insights.json` into each posted folder, plus a summary table (`docs/INSIGHTS.md`, or the run log).
    - Metrics: `reach, views, saved, shares, likes, comments, total_interactions, follows, profile_visits`.
    - Read each post at least 48 hours after publishing, and store blanks as blanks, not zeros.
