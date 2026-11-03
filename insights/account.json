@@ -43,16 +43,29 @@
    "shares": 0,
    "total_interactions": 2,
    "views": 720
+  },
+  "2026-11-02": {
+   "accounts_engaged": 3,
+   "comments": 0,
+   "likes": 4,
+   "profile_links_taps": 0,
+   "reach": 115,
+   "saves": 0,
+   "shares": 0,
+   "total_interactions": 4,
+   "views": 248
   }
  },
  "followers": {
   "2026-11-01": 6,
-  "2026-11-02": 10
+  "2026-11-02": 10,
+  "2026-11-03": 10
  },
  "insights_permission": true,
  "media_count": {
   "2026-11-01": 10,
-  "2026-11-02": 12
+  "2026-11-02": 12,
+  "2026-11-03": 12
  },
- "updated_at": "2026-11-03T04:49:18.956176+00:00"
+ "updated_at": "2026-11-03T10:34:10.895476+00:00"
 }
