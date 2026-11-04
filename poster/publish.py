@@ -54,7 +54,7 @@ MAX_LATE_HOURS = float(os.environ.get("MAX_LATE_HOURS", "6"))
 # Location tag for every post: the ID of a Facebook Page that has a map location
 # (docs/RESEARCH.md, "Location tags"). Not a secret. A post.json "location_id"
 # overrides it, and "location_id": "" posts that one untagged. Empty = no tags.
-DEFAULT_LOCATION_ID = os.environ.get("IG_LOCATION_ID") or ""
+DEFAULT_LOCATION_ID = os.environ.get("IG_LOCATION_ID") or "218818416"  # Fairfield, Connecticut
 
 STATUS_POLL_SECONDS = 60
 STATUS_POLL_TRIES = 6  # once a minute for up to 5 minutes, per Meta's guidance
