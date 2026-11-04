@@ -68,6 +68,11 @@ Single images, single videos, Reels, Stories and carousels ([Publish Content](ht
 
 ---
 
+### Location tags (added 2026-11-04)
+
+`location_id` is accepted on the image container, the carousel container (not on carousel items) and the Reel container. It takes the ID of a Facebook Page that has latitude and longitude; a Page without them fails with `INSTAGRAM_PLATFORM_API__INVALID_LOCATION_ID` ([IG User Media](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media), [Content Publishing](https://developers.facebook.com/docs/instagram-platform/content-publishing)). The poster sets it from `DEFAULT_LOCATION_ID` in poster/publish.py, or a post.json `location_id`, and retries once untagged if Instagram rejects the location, so a bad ID never costs a post.
+
+
 ## 2. Cross-posting to the My House Guardian Facebook Page
 
 **Built Oct 30, 2026** in `poster/facebook.py`; setup in SETUP.md, "Facebook Page".
@@ -164,6 +169,11 @@ Instagram's in-app setting to automatically share posts to a linked Facebook Pag
 - **Deprecations:** `post_impressions*` is deprecated above v25, and "By June 15, 2026, a number of the Page Insights metrics will be deprecated for all API versions." Use `post_media_view` and `post_total_media_view_unique`.
 
 ---
+
+### Facebook Page numbers (added 2026-11-04)
+
+poster/fb_insights.py records Page followers (`followers_count` on the [Page](https://developers.facebook.com/docs/graph-api/reference/page/)) and, per cross-post, reactions, comments and shares from the post or video object's summary edges. These need only `pages_read_engagement`, which the token has. Reach and views come from [Page/post insights](https://developers.facebook.com/docs/graph-api/reference/v26.0/insights), which need `read_insights` and are only served once a Page has 100 likes; until then they're stored as null. Some Page Insights metrics were deprecated in mid-2026, so each metric is requested on its own and a refusal leaves just that one blank.
+
 
 ## 5. Failure modes and how to handle them
 

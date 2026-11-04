@@ -132,6 +132,12 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
     <div class="table-wrap"><table id="posts"></table></div>
   </section>
 
+  <section id="fb-section">
+    <div class="section-head"><h2>Facebook Page</h2><p id="fb-sub">Cross-posts from the queue. Reach and views stay blank until the Page has 100 likes and the token can read insights.</p></div>
+    <div class="tiles" id="fb-tiles"></div>
+    <div class="table-wrap"><table id="fb-posts"></table></div>
+  </section>
+
   <section id="stories-section">
     <div class="section-head"><h2>Stories</h2><p>Last reading before the Story expired.</p></div>
     <div class="table-wrap"><table id="stories"></table></div>
@@ -260,6 +266,26 @@ footer p { margin: 0 0 6px; max-width: 70ch; }
     table.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => { const k = b.dataset.k; if (k === sortKey) dir = -dir; else { sortKey = k; dir = cols.find(c => c.k === k).num ? -1 : 1; } renderPosts(); table.querySelector(`button[data-k="${k}"]`).focus(); }));
   }
   renderPosts();
+
+  // ---- facebook
+  (function () {
+    const F = D.facebook || {}, FP = Object.values(F.posts || {});
+    const sec = document.getElementById("fb-section");
+    if (!F.updated_at) { sec.hidden = true; return; }
+    const fd = Object.keys(F.followers || {}).sort();
+    const sumOf = k => { const v = FP.map(p => p[k]).filter(x => x !== null && x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+    const ft = document.getElementById("fb-tiles");
+    [["Page followers", fd.length ? F.followers[fd[fd.length - 1]] : null, "Counted each collection"],
+     ["Reactions", sumOf("reactions"), "All cross-posts"],
+     ["Comments", sumOf("comments"), "All cross-posts"],
+     ["Shares", sumOf("shares"), "Photo posts only; Facebook doesn't give Reel shares"]]
+      .forEach(([l, v, n]) => { const d = el("div", "tile"); d.append(el("span", "label", esc(l)), el("span", "value", fmt(v)), el("span", "note", esc(n))); ft.append(d); });
+    const rows = FP.slice().sort((a, b) => String(b.posted_at).localeCompare(String(a.posted_at)));
+    const cell = v => v === null || v === undefined ? '<span class="blank">–</span>' : fmt(v);
+    document.getElementById("fb-posts").innerHTML = `<thead><tr><th scope="col">Posted</th><th scope="col">Post</th><th scope="col">Type</th><th scope="col">Reach</th><th scope="col">Views</th><th scope="col">Reactions</th><th scope="col">Comments</th><th scope="col">Shares</th></tr></thead><tbody>`
+      + (rows.length ? rows.map(p => `<tr><td>${p.posted_at ? dfmt(p.posted_at) : "–"}</td><td class="name"><a href="${esc(p.permalink)}" target="_blank" rel="noopener">${esc((p.folder || "").replace(/^\d{4}-\d{2}-\d{2}-/, "").replace(/-/g, " "))}</a></td><td><span class="chip ${esc(p.kind)}">${kindName[p.kind] || esc(p.kind)}</span></td><td>${cell(p.reach)}</td><td>${cell(p.views)}</td><td>${cell(p.reactions)}</td><td>${cell(p.comments)}</td><td>${cell(p.shares)}</td></tr>`).join("")
+        : `<tr><td colspan="8" class="blank">No Facebook posts collected yet.</td></tr>`) + `</tbody>`;
+  })();
 
   // ---- stories
   const stories = Object.values(S).sort((a, b) => b.posted_at.localeCompare(a.posted_at));

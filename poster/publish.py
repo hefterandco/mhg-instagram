@@ -51,6 +51,10 @@ PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL", "")
 # A post more than this many hours late is marked "missed" instead of posted,
 # so turning the poster back on after a break never dumps a week of posts at once.
 MAX_LATE_HOURS = float(os.environ.get("MAX_LATE_HOURS", "6"))
+# Location tag for every post: the ID of a Facebook Page that has a map location
+# (docs/RESEARCH.md, "Location tags"). Not a secret. A post.json "location_id"
+# overrides it, and "location_id": "" posts that one untagged. Empty = no tags.
+DEFAULT_LOCATION_ID = os.environ.get("IG_LOCATION_ID") or ""
 
 STATUS_POLL_SECONDS = 60
 STATUS_POLL_TRIES = 6  # once a minute for up to 5 minutes, per Meta's guidance
@@ -178,7 +182,7 @@ def publish_reel(folder: Path, post: dict, extra: dict) -> str:
                   "caption": post["caption"], "share_to_feed": "true" if post.get("share_to_feed", True) else "false", **extra}
         if post.get("cover"):
             params["cover_url"] = f"{base_url()}/queue/{folder.name}/{post['cover']}"
-        container = api("POST", f"{IG_USER_ID}/media", params)["id"]
+        container = create_container(params)
         saved.write_text(json.dumps({"id": container, "created_at": dt.datetime.now(dt.timezone.utc).isoformat()}) + "\n")
     try:
         wait_until_ready(container)
@@ -190,12 +194,27 @@ def publish_reel(folder: Path, post: dict, extra: dict) -> str:
     return container
 
 
+def create_container(params: dict) -> str:
+    """POSTs a media container. A rejected location tag never costs the post: it
+    retries once untagged and leaves a warning in the run log."""
+    try:
+        return api("POST", f"{IG_USER_ID}/media", params)["id"]
+    except ApiError as e:
+        if "location_id" not in params or "location" not in str(e).lower():
+            raise
+        print(f"::warning::Instagram rejected location_id {params['location_id']} ({e}); posting without a location.")
+        return api("POST", f"{IG_USER_ID}/media", {k: v for k, v in params.items() if k != "location_id"})["id"]
+
+
 def publish(folder: Path, post: dict) -> dict:
     caption = post["caption"]
     # Optional post.json fields, passed straight through. Carousel children can't take either.
     extra = {}
     if post.get("is_ai_generated"):
         extra["is_ai_generated"] = "true"
+    location = post.get("location_id", DEFAULT_LOCATION_ID)
+    if location:
+        extra["location_id"] = str(location)
     if post.get("reel"):
         container = publish_reel(folder, post, extra)
         media_id = api("POST", f"{IG_USER_ID}/media_publish", {"creation_id": container})["id"]
@@ -205,7 +224,7 @@ def publish(folder: Path, post: dict) -> dict:
     if len(urls) == 1:
         if post.get("alt_text"):
             extra["alt_text"] = post["alt_text"]
-        container = api("POST", f"{IG_USER_ID}/media", {"image_url": urls[0], "caption": caption, **extra})["id"]
+        container = create_container({"image_url": urls[0], "caption": caption, **extra})
     else:
         children = []
         for u in urls:
@@ -213,9 +232,9 @@ def publish(folder: Path, post: dict) -> dict:
             children.append(cid)
         for cid in children:
             wait_until_ready(cid)
-        container = api("POST", f"{IG_USER_ID}/media", {
+        container = create_container({
             "media_type": "CAROUSEL", "children": ",".join(children), "caption": caption, **extra,
-        })["id"]
+        })
     wait_until_ready(container)
     media_id = api("POST", f"{IG_USER_ID}/media_publish", {"creation_id": container})["id"]
     return {"media_id": media_id, "permalink": permalink_of(media_id)}

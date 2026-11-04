@@ -155,6 +155,9 @@ def check_post(folder: Path) -> list[str]:
 
     if not isinstance(post.get("is_ai_generated", False), bool):
         problems.append("is_ai_generated must be true or false")
+    loc = post.get("location_id", "")
+    if not (isinstance(loc, str) and (loc == "" or loc.isdigit())):
+        problems.append('location_id must be a Facebook Page ID in quotes, e.g. "108012345678901", or "" for no location')
     if not isinstance(post.get("facebook", True), bool):
         problems.append("facebook must be true or false")
     if post.get("reel"):

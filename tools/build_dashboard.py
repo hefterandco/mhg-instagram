@@ -26,7 +26,7 @@ def main() -> None:
 
     data_dir = Path(args.data)
     data = {}
-    for name in ("account", "posts", "stories"):
+    for name in ("account", "posts", "stories", "facebook"):
         p = data_dir / f"{name}.json"
         data[name] = json.loads(p.read_text()) if p.exists() else {}
     # </ inside JSON would end the <script> block early.

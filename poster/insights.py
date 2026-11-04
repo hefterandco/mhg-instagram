@@ -271,6 +271,22 @@ def main() -> int:
         save("posts.json", posts)
         save("stories.json", stories)
 
+    # Facebook Page numbers ride along when the Page secrets are in this step's env.
+    # A Facebook problem never fails the Instagram collection.
+    import facebook  # noqa: E402
+    if facebook.enabled():
+        import fb_insights  # noqa: E402
+        try:
+            fbdata = fb_insights.collect(now, load("facebook.json", {}))
+            if args.dry_run:
+                print(json.dumps({"facebook": fbdata}, indent=1))
+            else:
+                save("facebook.json", fbdata)
+            print(f"Facebook followers today: {fbdata['followers'].get(now.astimezone(LOCAL_TZ).date().isoformat())}"
+                  f"   Facebook posts tracked: {len(fbdata['posts'])}")
+        except Exception as e:  # noqa: BLE001
+            print(f"::warning::Facebook numbers skipped: {e}")
+
     print(f"Followers today: {account['followers'].get(now.astimezone(LOCAL_TZ).date().isoformat())}")
     print(f"Posts tracked: {len(posts)}   Stories tracked: {len(stories)}")
     if not can:
