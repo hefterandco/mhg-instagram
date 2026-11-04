@@ -85,18 +85,23 @@ def collect(now: dt.datetime, data: dict) -> dict:
         if last and (now - posted).days > FRESH_DAYS and (now - dt.datetime.fromisoformat(last)).days < 7:
             data["posts"][oid] = rec
             continue
-        fields = "likes.summary(true).limit(0),comments.summary(true).limit(0)" if info["kind"] == "reel" else \
-            "reactions.summary(true).limit(0),comments.summary(true).limit(0),shares"
-        try:
-            obj = fb.api("GET", oid, {"fields": fields})
-        except fb.FacebookError as e:
-            rec["error"] = str(e)[:200]
-            data["posts"][oid] = rec
-            continue
-        rec.pop("error", None)
+        # Each field on its own: on photo posts, comments need pages_read_user_content,
+        # which the token lacks, and one refused field would otherwise blank the rest.
+        wanted = ["likes.summary(true).limit(0)", "comments.summary(true).limit(0)"] if info["kind"] == "reel" else \
+            ["reactions.summary(true).limit(0)", "shares", "comments.summary(true).limit(0)"]
+        obj, errors = {}, []
+        for field in wanted:
+            try:
+                obj.update(fb.api("GET", oid, {"fields": field}))
+            except fb.FacebookError as e:
+                errors.append(f"{field.split('.')[0]}: {str(e)[:120]}")
+        if errors:
+            rec["error"] = "; ".join(errors)
+        else:
+            rec.pop("error", None)
         rec["reactions"] = summary_count(obj, "likes" if info["kind"] == "reel" else "reactions")
         rec["comments"] = summary_count(obj, "comments")
-        rec["shares"] = (obj.get("shares") or {}).get("count", 0 if info["kind"] != "reel" else None)
+        rec["shares"] = (obj.get("shares") or {}).get("count", 0) if info["kind"] != "reel" and "id" in obj else None
         ins = read_insights(oid, REEL_INSIGHTS if info["kind"] == "reel" else POST_INSIGHTS)
         rec["reach"] = ins.get("post_impressions_unique")
         rec["views"] = ins.get("blue_reels_play_count") if info["kind"] == "reel" else ins.get("post_impressions")
