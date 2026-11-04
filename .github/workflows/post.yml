@@ -82,6 +82,8 @@ jobs:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
           IG_GRAPH_VERSION: ${{ vars.IG_GRAPH_VERSION }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
         run: python poster/insights.py --if-older-than 5.5
 
       - name: Save results so nothing posts twice
