@@ -1,0 +1,77 @@
+{
+ "followers": {
+  "2026-11-04": 1
+ },
+ "posts": {
+  "1132164739462411": {
+   "checked_at": "2026-11-04T06:01:57.435463+00:00",
+   "comments": 0,
+   "folder": "2026-11-02-vents-dustier",
+   "kind": "reel",
+   "permalink": "https://www.facebook.com/reel/1132164739462411/",
+   "posted_at": "2026-11-02T12:04:09.467823+00:00",
+   "reach": null,
+   "reactions": 0,
+   "shares": null,
+   "views": null
+  },
+  "1149017048065050": {
+   "checked_at": "2026-11-04T06:01:57.435463+00:00",
+   "comments": 0,
+   "folder": "2026-10-30-contractor-running-late",
+   "kind": "reel",
+   "permalink": "https://www.facebook.com/reel/1149017048065050/",
+   "posted_at": "2026-10-30T22:54:15.758426+00:00",
+   "reach": null,
+   "reactions": 0,
+   "shares": null,
+   "views": null
+  },
+  "1419803117877096_122098393143534481": {
+   "error": "Facebook GET 1419803117877096_122098393143534481: (#10) This endpoint requires the 'pages_read_user_content' permission or the 'Page Public Content Access' feature. Refer to https://developers.faceboo",
+   "folder": "2026-10-31-halloween-scary-sounds",
+   "kind": "image",
+   "permalink": "https://www.facebook.com/122098393155534481/posts/122098393143534481",
+   "posted_at": "2026-10-31T17:49:09.565745+00:00"
+  },
+  "1419803117877096_122099799561534481": {
+   "error": "Facebook GET 1419803117877096_122099799561534481: (#10) This endpoint requires the 'pages_read_user_content' permission or the 'Page Public Content Access' feature. Refer to https://developers.faceboo",
+   "folder": "2026-11-02-dark-before-5",
+   "kind": "image",
+   "permalink": "https://www.facebook.com/122098393155534481/posts/122099799561534481",
+   "posted_at": "2026-11-02T13:34:11.758936+00:00"
+  },
+  "1419803117877096_122100982443534481": {
+   "error": "Facebook GET 1419803117877096_122100982443534481: (#10) This endpoint requires the 'pages_read_user_content' permission or the 'Page Public Content Access' feature. Refer to https://developers.faceboo",
+   "folder": "2026-11-03-first-freeze",
+   "kind": "carousel",
+   "permalink": "https://www.facebook.com/122098393155534481/posts/122100982443534481",
+   "posted_at": "2026-11-03T15:04:10.997232+00:00"
+  },
+  "1489199623074518": {
+   "checked_at": "2026-11-04T06:01:57.435463+00:00",
+   "comments": 0,
+   "folder": "2026-11-03-cta-sixty-hours",
+   "kind": "reel",
+   "permalink": "https://www.facebook.com/reel/1489199623074518/",
+   "posted_at": "2026-11-04T00:25:34.725616+00:00",
+   "reach": null,
+   "reactions": 0,
+   "shares": null,
+   "views": null
+  },
+  "1587140869390236": {
+   "checked_at": "2026-11-04T06:01:57.435463+00:00",
+   "comments": 0,
+   "folder": "2026-11-01-clocks-fell-back-gutters",
+   "kind": "reel",
+   "permalink": "https://www.facebook.com/reel/1587140869390236/",
+   "posted_at": "2026-11-01T11:04:09.498744+00:00",
+   "reach": null,
+   "reactions": 0,
+   "shares": null,
+   "views": null
+  }
+ },
+ "updated_at": "2026-11-04T06:01:57.435463+00:00"
+}

@@ -54,18 +54,31 @@
    "shares": 0,
    "total_interactions": 4,
    "views": 248
+  },
+  "2026-11-03": {
+   "accounts_engaged": 2,
+   "comments": 0,
+   "likes": 3,
+   "profile_links_taps": 0,
+   "reach": 54,
+   "saves": 0,
+   "shares": 0,
+   "total_interactions": 3,
+   "views": 102
   }
  },
  "followers": {
   "2026-11-01": 6,
   "2026-11-02": 10,
-  "2026-11-03": 11
+  "2026-11-03": 11,
+  "2026-11-04": 11
  },
  "insights_permission": true,
  "media_count": {
   "2026-11-01": 10,
   "2026-11-02": 12,
-  "2026-11-03": 14
+  "2026-11-03": 14,
+  "2026-11-04": 14
  },
- "updated_at": "2026-11-04T01:38:44.617669+00:00"
+ "updated_at": "2026-11-04T06:01:57.435463+00:00"
 }
