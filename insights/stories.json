@@ -1,7 +1,7 @@
 {
  "17872978245646661": {
   "file": null,
-  "insights_at": "2026-11-05T01:47:08.323543+00:00",
+  "insights_at": "2026-11-05T02:11:40.137273+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 0,
@@ -38,6 +38,19 @@
   },
   "posted_at": "2026-11-01T21:51:20+00:00"
  },
+ "18010611353990406": {
+  "file": null,
+  "insights_at": "2026-11-05T02:11:40.137273+00:00",
+  "metrics": {
+   "follows": 0,
+   "profile_visits": 0,
+   "reach": 0,
+   "shares": 0,
+   "total_interactions": 0,
+   "views": 0
+  },
+  "posted_at": "2026-11-05T02:10:34+00:00"
+ },
  "18052524113821746": {
   "file": null,
   "insights_at": "2026-11-03T13:38:15.779731+00:00",
@@ -53,7 +66,7 @@
  },
  "18121433291091080": {
   "file": null,
-  "insights_at": "2026-11-05T01:47:08.323543+00:00",
+  "insights_at": "2026-11-05T02:11:40.137273+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 2,

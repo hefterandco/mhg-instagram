@@ -4,7 +4,7 @@
  },
  "posts": {
   "1132164739462411": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": 0,
    "folder": "2026-11-02-vents-dustier",
    "kind": "reel",
@@ -16,7 +16,7 @@
    "views": null
   },
   "1149017048065050": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": 0,
    "folder": "2026-10-30-contractor-running-late",
    "kind": "reel",
@@ -28,7 +28,7 @@
    "views": null
   },
   "1419803117877096_122098393143534481": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": null,
    "error": "reactions: Facebook GET 1419803117877096_122098393143534481: (#10) This endpoint requires the 'pages_read_user_content' permission ; comments: Facebook GET 1419803117877096_122098393143534481: (#10) This endpoint requires the 'pages_read_user_content' permission ",
    "folder": "2026-10-31-halloween-scary-sounds",
@@ -41,7 +41,7 @@
    "views": null
   },
   "1419803117877096_122099799561534481": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": null,
    "error": "reactions: Facebook GET 1419803117877096_122099799561534481: (#10) This endpoint requires the 'pages_read_user_content' permission ; comments: Facebook GET 1419803117877096_122099799561534481: (#10) This endpoint requires the 'pages_read_user_content' permission ",
    "folder": "2026-11-02-dark-before-5",
@@ -54,7 +54,7 @@
    "views": null
   },
   "1419803117877096_122100982443534481": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": null,
    "error": "reactions: Facebook GET 1419803117877096_122100982443534481: (#10) This endpoint requires the 'pages_read_user_content' permission ; comments: Facebook GET 1419803117877096_122100982443534481: (#10) This endpoint requires the 'pages_read_user_content' permission ",
    "folder": "2026-11-03-first-freeze",
@@ -67,7 +67,7 @@
    "views": null
   },
   "1489199623074518": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": 0,
    "folder": "2026-11-03-cta-sixty-hours",
    "kind": "reel",
@@ -78,8 +78,20 @@
    "shares": null,
    "views": null
   },
+  "1493148586217475": {
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
+   "comments": 0,
+   "folder": "2026-11-04-website-presale",
+   "kind": "reel",
+   "permalink": "https://www.facebook.com/reel/1493148586217475/",
+   "posted_at": "2026-11-05T02:07:20.536236+00:00",
+   "reach": null,
+   "reactions": 0,
+   "shares": null,
+   "views": null
+  },
   "1587140869390236": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": 0,
    "folder": "2026-11-01-clocks-fell-back-gutters",
    "kind": "reel",
@@ -91,7 +103,7 @@
    "views": null
   },
   "1682062933577127": {
-   "checked_at": "2026-11-05T01:47:08.323543+00:00",
+   "checked_at": "2026-11-05T02:11:40.137273+00:00",
    "comments": 0,
    "folder": "2026-11-04-fridge-water-filter",
    "kind": "reel",
@@ -103,5 +115,5 @@
    "views": null
   }
  },
- "updated_at": "2026-11-05T01:47:08.323543+00:00"
+ "updated_at": "2026-11-05T02:11:40.137273+00:00"
 }
