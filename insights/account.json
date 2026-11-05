@@ -71,11 +71,11 @@
    "comments": 0,
    "likes": 4,
    "profile_links_taps": 0,
-   "reach": 143,
+   "reach": 144,
    "saves": 0,
    "shares": 1,
    "total_interactions": 6,
-   "views": 297
+   "views": 298
   }
  },
  "followers": {
@@ -83,7 +83,7 @@
   "2026-11-02": 10,
   "2026-11-03": 11,
   "2026-11-04": 12,
-  "2026-11-05": 13
+  "2026-11-05": 14
  },
  "insights_permission": true,
  "media_count": {
@@ -93,5 +93,5 @@
   "2026-11-04": 16,
   "2026-11-05": 15
  },
- "updated_at": "2026-11-05T11:29:05.703284+00:00"
+ "updated_at": "2026-11-05T17:04:12.596535+00:00"
 }
