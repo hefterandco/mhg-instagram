@@ -5,7 +5,7 @@
  },
  "posts": {
   "1132164739462411": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-02-vents-dustier",
    "kind": "reel",
@@ -17,7 +17,7 @@
    "views": 4
   },
   "1149017048065050": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-10-30-contractor-running-late",
    "kind": "reel",
@@ -29,7 +29,7 @@
    "views": 6
   },
   "1416613643972052": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-03-cover-the-ac-top",
    "kind": "reel",
@@ -41,7 +41,7 @@
    "views": 0
   },
   "1419803117877096_122098393143534481": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-10-31-halloween-scary-sounds",
    "kind": "image",
@@ -53,7 +53,7 @@
    "views": null
   },
   "1419803117877096_122099799561534481": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-02-dark-before-5",
    "kind": "image",
@@ -65,7 +65,7 @@
    "views": null
   },
   "1419803117877096_122100982443534481": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-03-first-freeze",
    "kind": "carousel",
@@ -77,7 +77,7 @@
    "views": null
   },
   "1489199623074518": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": null,
    "error": "likes: Facebook GET 1489199623074518: Unsupported get request. Object with ID '1489199623074518' does not exist, cannot be load; comments: Facebook GET 1489199623074518: Unsupported get request. Object with ID '1489199623074518' does not exist, cannot be load",
    "folder": "2026-11-03-cta-sixty-hours",
@@ -90,7 +90,7 @@
    "views": null
   },
   "1493148586217475": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-04-website-presale",
    "kind": "reel",
@@ -102,7 +102,7 @@
    "views": 0
   },
   "1587140869390236": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-01-clocks-fell-back-gutters",
    "kind": "reel",
@@ -114,7 +114,7 @@
    "views": 4
   },
   "1682062933577127": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-04-fridge-water-filter",
    "kind": "reel",
@@ -126,7 +126,7 @@
    "views": 0
   },
   "1854313812367776": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-04-cta-forty-hours",
    "kind": "reel",
@@ -138,7 +138,7 @@
    "views": 0
   },
   "2119272898728433": {
-   "checked_at": "2026-11-06T00:08:40.488788+00:00",
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
    "comments": 0,
    "folder": "2026-11-05-cta-new-homeowner",
    "kind": "reel",
@@ -148,7 +148,19 @@
    "reactions": 0,
    "shares": null,
    "views": 0
+  },
+  "964911630032234": {
+   "checked_at": "2026-11-06T01:47:23.565112+00:00",
+   "comments": 0,
+   "folder": "2026-11-05-smoke-alarm",
+   "kind": "reel",
+   "permalink": "https://www.facebook.com/reel/964911630032234/",
+   "posted_at": "2026-11-06T00:09:03.182352+00:00",
+   "reach": null,
+   "reactions": 0,
+   "shares": null,
+   "views": 0
   }
  },
- "updated_at": "2026-11-06T00:08:40.488788+00:00"
+ "updated_at": "2026-11-06T01:47:23.565112+00:00"
 }
