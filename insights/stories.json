@@ -51,6 +51,19 @@
   },
   "posted_at": "2026-11-02T02:39:42+00:00"
  },
+ "17932985472431243": {
+  "file": null,
+  "insights_at": "2026-11-19T22:45:27.500747+00:00",
+  "metrics": {
+   "follows": 0,
+   "profile_visits": 3,
+   "reach": 16,
+   "shares": 0,
+   "total_interactions": 0,
+   "views": 23
+  },
+  "posted_at": "2026-11-19T18:28:08+00:00"
+ },
  "17965220853219686": {
   "file": "once/clocks-back-2.jpg",
   "insights_at": "2026-11-02T17:19:10.386489+00:00",
@@ -92,14 +105,14 @@
  },
  "18018065855978492": {
   "file": null,
-  "insights_at": "2026-11-19T17:49:09.452533+00:00",
+  "insights_at": "2026-11-19T22:45:27.500747+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 0,
-   "reach": 14,
+   "reach": 22,
    "shares": 0,
    "total_interactions": 0,
-   "views": 14
+   "views": 23
   },
   "posted_at": "2026-11-19T03:16:48+00:00"
  },
@@ -144,14 +157,14 @@
  },
  "18077153114725767": {
   "file": null,
-  "insights_at": "2026-11-19T17:49:09.452533+00:00",
+  "insights_at": "2026-11-19T22:45:27.500747+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 0,
-   "reach": 18,
+   "reach": 24,
    "shares": 0,
    "total_interactions": 0,
-   "views": 22
+   "views": 28
   },
   "posted_at": "2026-11-19T03:15:07+00:00"
  },
@@ -271,6 +284,19 @@
    "views": 25
   },
   "posted_at": "2026-11-09T18:38:14+00:00"
+ },
+ "18200195098347503": {
+  "file": null,
+  "insights_at": "2026-11-19T22:45:27.500747+00:00",
+  "metrics": {
+   "follows": 0,
+   "profile_visits": 0,
+   "reach": 16,
+   "shares": 0,
+   "total_interactions": 0,
+   "views": 24
+  },
+  "posted_at": "2026-11-19T18:26:34+00:00"
  },
  "18213436750367868": {
   "file": null,
