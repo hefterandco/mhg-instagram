@@ -53,14 +53,14 @@
  },
  "17932985472431243": {
   "file": null,
-  "insights_at": "2026-11-20T12:09:51.631310+00:00",
+  "insights_at": "2026-11-20T17:49:12.878812+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 3,
    "reach": 23,
    "shares": 0,
    "total_interactions": 0,
-   "views": 30
+   "views": 31
   },
   "posted_at": "2026-11-19T18:28:08+00:00"
  },
@@ -259,6 +259,19 @@
   },
   "posted_at": "2026-11-06T00:05:41+00:00"
  },
+ "18134173366804622": {
+  "file": null,
+  "insights_at": "2026-11-20T17:49:12.878812+00:00",
+  "metrics": {
+   "follows": 0,
+   "profile_visits": 0,
+   "reach": 5,
+   "shares": 0,
+   "total_interactions": 0,
+   "views": 8
+  },
+  "posted_at": "2026-11-20T16:26:02+00:00"
+ },
  "18153181321543042": {
   "file": null,
   "insights_at": "2026-11-06T21:03:11.793657+00:00",
@@ -287,14 +300,14 @@
  },
  "18200195098347503": {
   "file": null,
-  "insights_at": "2026-11-20T12:09:51.631310+00:00",
+  "insights_at": "2026-11-20T17:49:12.878812+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 0,
-   "reach": 26,
+   "reach": 27,
    "shares": 0,
    "total_interactions": 0,
-   "views": 35
+   "views": 36
   },
   "posted_at": "2026-11-19T18:26:34+00:00"
  },
