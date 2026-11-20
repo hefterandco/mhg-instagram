@@ -53,7 +53,7 @@
  },
  "17932985472431243": {
   "file": null,
-  "insights_at": "2026-11-20T04:19:14.561031+00:00",
+  "insights_at": "2026-11-20T10:04:11.937826+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 3,
@@ -287,14 +287,14 @@
  },
  "18200195098347503": {
   "file": null,
-  "insights_at": "2026-11-20T04:19:14.561031+00:00",
+  "insights_at": "2026-11-20T10:04:11.937826+00:00",
   "metrics": {
    "follows": 0,
    "profile_visits": 0,
-   "reach": 24,
+   "reach": 26,
    "shares": 0,
    "total_interactions": 0,
-   "views": 34
+   "views": 35
   },
   "posted_at": "2026-11-19T18:26:34+00:00"
  },
