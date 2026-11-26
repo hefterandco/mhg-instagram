@@ -298,15 +298,15 @@
    "views": 6
   },
   "2026-11-25": {
-   "accounts_engaged": 0,
+   "accounts_engaged": 1,
    "comments": 0,
-   "likes": 0,
+   "likes": 1,
    "profile_links_taps": 0,
-   "reach": 0,
+   "reach": 1,
    "saves": 0,
    "shares": 0,
-   "total_interactions": 0,
-   "views": 0
+   "total_interactions": 1,
+   "views": 4
   }
  },
  "followers": {
@@ -366,5 +366,5 @@
   "2026-11-25": 46,
   "2026-11-26": 46
  },
- "updated_at": "2026-11-26T05:19:09.361118+00:00"
+ "updated_at": "2026-11-26T10:49:11.426878+00:00"
 }
